@@ -197,7 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
             updatePayload[currentMonthKey] = currYearlyData[currentMonthKey];
 
             const docRef = firestoreUtils.doc(db, "curriculum_yearly_confirms", currentYear);
-            await firestoreUtils.setDoc(docRef, updatePayload, { merge: true });
+            await firestoreUtils.updateDoc(docRef, updatePayload);
         } catch (e) {
             console.error("Error saving status:", e);
             // Revert logic
@@ -572,12 +572,12 @@ document.addEventListener("DOMContentLoaded", () => {
     async function updateEventField(id, fields) {
         const { db, firestoreUtils } = window;
          try {
-            await firestoreUtils.setDoc(firestoreUtils.doc(db, "curriculum_events", id), fields, { merge: true });
+            // Use updateDoc instead of setDoc to only update specified fields
+            await firestoreUtils.updateDoc(firestoreUtils.doc(db, "curriculum_events", id), fields);
             // Sync locally
             const ev = currEvents.find(e => e.id === id);
             if(ev) {
                 Object.assign(ev, fields);
-                // Note: Logging is handled by the caller to avoid duplicate logs
             }
         } catch(err) { console.error(err); }
     }
@@ -1638,15 +1638,16 @@ document.addEventListener("DOMContentLoaded", () => {
             
             newData.updatedAt = new Date().toISOString();
 
-            const newRef = firestoreUtils.doc(firestoreUtils.collection(db, "curriculum_events"));
-            await firestoreUtils.setDoc(newRef, newData);
+            const newId = `evt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            await firestoreUtils.setDoc(firestoreUtils.doc(db, "curriculum_events", newId), newData);
             
             await loadCurriculumEvents();
             renderCurrentView();
             if (window.updateTodayWidget) window.updateTodayWidget();
             
-            // Optionally open the modal for the new event immediately? 
-            // Better to just show it on board so they can drag it or edit it.
+            if(window.logUserAction) {
+                window.logUserAction('curriculum', '복제', `${originalEvent.title} 일정 복제`);
+            }
             
         } catch (err) {
             console.error("Error duplicating event:", err);
@@ -1842,7 +1843,7 @@ document.addEventListener("DOMContentLoaded", () => {
     async function updateEventDate(id, newDate) {
         const { db, firestoreUtils } = window;
          try {
-            await firestoreUtils.setDoc(firestoreUtils.doc(db, "curriculum_events", id), { start: newDate }, { merge: true });
+            await firestoreUtils.updateDoc(firestoreUtils.doc(db, "curriculum_events", id), { start: newDate });
             loadCurriculumEvents();
             renderCurrentView();
         } catch(err) { console.error(err); }

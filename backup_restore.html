@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>데이터 백업 & 복구</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; font-size: 14px; }
+        .backup-btn { background: #28a745; color: white; border: none; }
+        .restore-btn { background: #dc3545; color: white; border: none; }
+        .download-btn { background: #007bff; color: white; border: none; }
+        button:hover { opacity: 0.8; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        pre { background: #f5f5f5; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🛡️ 데이터 백업 & 복구 시스템</h1>
+    
+    <div class="section">
+        <h2>📦 백업 생성</h2>
+        <button class="backup-btn" onclick="createBackup()">현재 데이터 백업</button>
+        <button class="download-btn" onclick="downloadBackup()">백업 파일 다운로드</button>
+        <div id="backup-status"></div>
+    </div>
+
+    <div class="section">
+        <h2>🔄 백업 복구</h2>
+        <input type="file" id="restore-file" accept=".json">
+        <button class="restore-btn" onclick="restoreBackup()">백업 복구</button>
+        <div id="restore-status"></div>
+    </div>
+
+    <div class="section">
+        <h2>📊 백업 내역</h2>
+        <div id="backup-list"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCQmDCL-PuN2A9AgOzIpObCeNtvIFDJmhU",
+            authDomain: "studio-8412089884-f8185.firebaseapp.com",
+            projectId: "studio-8412089884-f8185",
+            storageBucket: "studio-8412089884-f8185.firebasestorage.app",
+            messagingSenderId: "928283224778",
+            appId: "1:928283224778:web:01cb08827402140aace233"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        let currentBackup = null;
+
+        window.createBackup = async function() {
+            const status = document.getElementById('backup-status');
+            status.innerHTML = '<div class="status info">백업 생성 중...</div>';
+            
+            try {
+                const snapshot = await getDocs(collection(db, "curriculum_events"));
+                const data = [];
+                snapshot.forEach(doc => {
+                    data.push({ id: doc.id, ...doc.data() });
+                });
+                
+                currentBackup = {
+                    timestamp: new Date().toISOString(),
+                    count: data.length,
+                    data: data
+                };
+                
+                // 로컬 스토리지에 저장
+                localStorage.setItem('curriculum_backup', JSON.stringify(currentBackup));
+                
+                status.innerHTML = `<div class="status success">
+                    ✅ 백업 완료!<br>
+                    시간: ${new Date(currentBackup.timestamp).toLocaleString('ko-KR')}<br>
+                    일정 수: ${currentBackup.count}개
+                </div>`;
+                
+                loadBackupList();
+            } catch (error) {
+                status.innerHTML = `<div class="status error">❌ 백업 실패: ${error.message}</div>`;
+            }
+        };
+
+        window.downloadBackup = function() {
+            const backup = localStorage.getItem('curriculum_backup');
+            if (!backup) {
+                alert('백업 데이터가 없습니다. 먼저 백업을 생성하세요.');
+                return;
+            }
+            
+            const blob = new Blob([backup], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `curriculum_backup_${new Date().toISOString().replace(/:/g, '-')}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+
+        window.restoreBackup = async function() {
+            const fileInput = document.getElementById('restore-file');
+            const status = document.getElementById('restore-status');
+            
+            if (!fileInput.files[0]) {
+                status.innerHTML = '<div class="status error">파일을 선택하세요.</div>';
+                return;
+            }
+            
+            if (!confirm('⚠️ 경고: 현재 데이터가 백업 데이터로 완전히 대체됩니다.\n계속하시겠습니까?')) {
+                return;
+            }
+            
+            status.innerHTML = '<div class="status info">복구 중...</div>';
+            
+            try {
+                const file = fileInput.files[0];
+                const text = await file.text();
+                const backup = JSON.parse(text);
+                
+                // 기존 데이터 삭제
+                const snapshot = await getDocs(collection(db, "curriculum_events"));
+                for (const docSnap of snapshot.docs) {
+                    await deleteDoc(doc(db, "curriculum_events", docSnap.id));
+                }
+                
+                // 백업 데이터 복구
+                for (const item of backup.data) {
+                    const { id, ...data } = item;
+                    await setDoc(doc(db, "curriculum_events", id), data);
+                }
+                
+                status.innerHTML = `<div class="status success">
+                    ✅ 복구 완료!<br>
+                    복구된 일정: ${backup.count}개<br>
+                    백업 시간: ${new Date(backup.timestamp).toLocaleString('ko-KR')}
+                </div>`;
+            } catch (error) {
+                status.innerHTML = `<div class="status error">❌ 복구 실패: ${error.message}</div>`;
+            }
+        };
+
+        function loadBackupList() {
+            const backup = localStorage.getItem('curriculum_backup');
+            const list = document.getElementById('backup-list');
+            
+            if (!backup) {
+                list.innerHTML = '<p>저장된 백업이 없습니다.</p>';
+                return;
+            }
+            
+            const data = JSON.parse(backup);
+            list.innerHTML = `
+                <div class="status info">
+                    <strong>최근 백업:</strong><br>
+                    시간: ${new Date(data.timestamp).toLocaleString('ko-KR')}<br>
+                    일정 수: ${data.count}개
+                </div>
+            `;
+        }
+
+        // 페이지 로드 시 백업 목록 표시
+        loadBackupList();
+    </script>
+</body>
+</html>
