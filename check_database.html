@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>데이터베이스 무결성 검사</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .ok { background: #d4edda; color: #155724; }
+        .warning { background: #fff3cd; color: #856404; }
+        .error { background: #f8d7da; color: #721c24; }
+        .corrupted-item { background: #fff; border: 1px solid #ddd; padding: 10px; margin: 5px 0; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>🔍 데이터베이스 무결성 검사</h1>
+    <button onclick="checkDatabase()">검사 시작</button>
+    <button onclick="fixCorrupted()" id="fixBtn" style="display:none; background:#dc3545;">손상된 문서 삭제</button>
+    
+    <div id="results"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCQmDCL-PuN2A9AgOzIpObCeNtvIFDJmhU",
+            authDomain: "studio-8412089884-f8185.firebaseapp.com",
+            projectId: "studio-8412089884-f8185",
+            storageBucket: "studio-8412089884-f8185.firebasestorage.app",
+            messagingSenderId: "928283224778",
+            appId: "1:928283224778:web:01cb08827402140aace233"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        let corruptedDocs = [];
+
+        window.checkDatabase = async function() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<p>검사 중...</p>';
+            
+            try {
+                const querySnapshot = await getDocs(collection(db, "curriculum_events"));
+                
+                let total = 0;
+                let corrupted = 0;
+                let healthy = 0;
+                corruptedDocs = [];
+                
+                let html = '<h2>검사 결과</h2>';
+                
+                querySnapshot.forEach((docSnap) => {
+                    total++;
+                    const data = docSnap.data();
+                    
+                    // 필수 필드 확인
+                    const requiredFields = ['title', 'start', 'eventType'];
+                    const missingFields = requiredFields.filter(field => !data[field]);
+                    
+                    if (missingFields.length > 0) {
+                        corrupted++;
+                        corruptedDocs.push({ id: docSnap.id, data });
+                        html += `<div class="corrupted-item">
+                            <strong>❌ 손상된 문서: ${docSnap.id}</strong><br>
+                            누락된 필드: ${missingFields.join(', ')}<br>
+                            현재 데이터: ${JSON.stringify(data)}
+                        </div>`;
+                    } else {
+                        healthy++;
+                    }
+                });
+                
+                html = `
+                    <div class="status ${corrupted > 0 ? 'warning' : 'ok'}">
+                        <strong>총 문서 수:</strong> ${total}<br>
+                        <strong>정상 문서:</strong> ${healthy}<br>
+                        <strong>손상된 문서:</strong> ${corrupted}
+                    </div>
+                ` + html;
+                
+                if (corrupted > 0) {
+                    document.getElementById('fixBtn').style.display = 'inline-block';
+                }
+                
+                results.innerHTML = html;
+                
+            } catch (error) {
+                results.innerHTML = `<div class="status error">오류 발생: ${error.message}</div>`;
+            }
+        };
+        
+        window.fixCorrupted = async function() {
+            if (!confirm(`${corruptedDocs.length}개의 손상된 문서를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다!`)) {
+                return;
+            }
+            
+            const results = document.getElementById('results');
+            results.innerHTML += '<p>삭제 중...</p>';
+            
+            try {
+                for (const item of corruptedDocs) {
+                    await deleteDoc(doc(db, "curriculum_events", item.id));
+                }
+                
+                results.innerHTML += `<div class="status ok">✅ ${corruptedDocs.length}개의 손상된 문서가 삭제되었습니다.</div>`;
+                document.getElementById('fixBtn').style.display = 'none';
+                
+                // 재검사
+                setTimeout(() => window.checkDatabase(), 1000);
+                
+            } catch (error) {
+                results.innerHTML += `<div class="status error">삭제 중 오류 발생: ${error.message}</div>`;
+            }
+        };
+    </script>
+</body>
+</html>

@@ -4179,7 +4179,7 @@
   };
 
   // 3.1 User Activity Logging (New)
-  window.logUserAction = async (category) => {
+  window.logUserAction = async (category, action = '조회', detail = '') => {
       if(!db || !auth.currentUser) return; // Only log logged-in users
       const user = auth.currentUser;
       const userName = user.displayName || user.email;
@@ -4194,14 +4194,14 @@
           'admin': '관리자 페이지'
       };
       
-      const actionName = viewNames[category] || category;
+      const targetName = viewNames[category] || category;
 
       try {
            await db.collection("userLogs").add({
               user: userName,
               uid: user.uid,
-              action: '조회',
-              target: actionName,
+              action: action,
+              target: detail || targetName,
               timestamp: new Date().toISOString(),
               category: category
           });

@@ -577,9 +577,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const ev = currEvents.find(e => e.id === id);
             if(ev) {
                 Object.assign(ev, fields);
-                if(window.logUserAction) {
-                    window.logUserAction('curriculum', '수정', `${ev.title} 일정 필드 업데이트 (${Object.keys(fields).join(', ')})`);
-                }
+                // Note: Logging is handled by the caller to avoid duplicate logs
             }
         } catch(err) { console.error(err); }
     }
@@ -1469,23 +1467,25 @@ document.addEventListener("DOMContentLoaded", () => {
                                 backgroundColor: item.backgroundColor,
                                 textColor: item.textColor
                             };
-                            const newRef = firestoreUtils.doc(firestoreUtils.collection(db, "curriculum_events"));
-                            await firestoreUtils.setDoc(newRef, newEvent);
+                            // Generate unique ID manually
+                            const newId = `evt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                            await firestoreUtils.setDoc(firestoreUtils.doc(db, "curriculum_events", newId), newEvent);
                         }
                     }
                 } else {
                     if (eventId) {
                         await firestoreUtils.setDoc(firestoreUtils.doc(db, "curriculum_events", eventId), eventData, { merge: true });
                     } else {
-                        const newRef = firestoreUtils.doc(firestoreUtils.collection(db, "curriculum_events"));
-                        await firestoreUtils.setDoc(newRef, eventData);
+                        // Generate unique ID manually
+                        const newId = `evt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                        await firestoreUtils.setDoc(firestoreUtils.doc(db, "curriculum_events", newId), eventData);
                     }
-                
-                    // Log action
-                    if(window.logUserAction) {
-                        const typeAction = eventId ? '수정' : '생성';
-                        window.logUserAction('curriculum', typeAction, `${eventData.title} 일정 ${typeAction}`);
-                    }
+                }
+            
+                // Log action - moved outside to log all event types
+                if(window.logUserAction) {
+                    const typeAction = eventId ? '수정' : '생성';
+                    window.logUserAction('curriculum', typeAction, `${eventData.title} 일정 ${typeAction}`);
                 }
 
                 currModal.classList.remove("active");
@@ -1667,7 +1667,10 @@ document.addEventListener("DOMContentLoaded", () => {
         else textSpan.classList.remove('completed-text');
 
         try {
-            await firestoreUtils.setDoc(firestoreUtils.doc(db, "curriculum_events", id), { isCompleted: isCompleted }, { merge: true });
+            // Use updateDoc instead of setDoc to only update the field, not replace the document
+            await firestoreUtils.updateDoc(firestoreUtils.doc(db, "curriculum_events", id), { 
+                isCompleted: isCompleted 
+            });
             // Sync local cache
             const ev = currEvents.find(e => e.id === id);
             if(ev) ev.isCompleted = isCompleted;
