@@ -1,0 +1,220 @@
+/* ===== Curriculum Member Confirmation Bar ===== */
+.curr-member-confirm-bar {
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.member-settings-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.member-settings-btn:hover {
+  background: var(--hover-bg);
+  color: var(--primary-color);
+  transform: rotate(90deg);
+}
+
+/* Confirmation Table */
+.confirm-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; /* 중요: 열 너비 고정 */
+  background: var(--card-bg);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+}
+
+.confirm-table thead {
+  background: var(--primary-color);
+  color: white;
+}
+
+.confirm-table th,
+.confirm-table td {
+  padding: 0.8rem;
+  text-align: center;
+  border: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+/* Row Label (구분, 확인) - 고정 너비 */
+.confirm-table .row-label {
+  width: 80px; /* 고정 너비로 정렬 보장 */
+  min-width: 80px;
+  max-width: 80px;
+  font-weight: 700;
+  background: var(--primary-color);
+  color: white;
+  text-align: center;
+  padding: 0.8rem 0.5rem;
+}
+
+/* tbody의 row-label - 배경만 설정, 글자색은 기본값 유지 */
+.confirm-table tbody .row-label {
+  font-weight: 700;
+}
+
+/* Member Columns - 균등 분배 */
+.confirm-table th:not(.row-label),
+.confirm-table td:not(.row-label) {
+  width: auto;
+  min-width: 80px;
+}
+
+/* Select Dropdown */
+.confirm-select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--text-main);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.confirm-select:hover {
+  border-color: var(--primary-color);
+}
+
+.confirm-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+/* Status Colors */
+.status-unconfirmed {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.status-confirmed {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.05);
+}
+
+/* No Members Message */
+.no-members-msg {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-secondary);
+  background: var(--card-bg);
+  border-radius: 12px;
+  border: 2px dashed var(--border-color);
+}
+
+.curr-btn-sm {
+  margin-left: 10px;
+  padding: 0.5rem 1rem;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.curr-btn-sm:hover {
+  background: #357abd;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+}
+
+/* Dark Mode */
+body.dark-mode .confirm-table {
+  background: rgba(30, 41, 59, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+body.dark-mode .confirm-table th {
+  background: rgba(51, 65, 85, 0.7) !important;
+  color: #e2e8f0 !important;
+  border-color: rgba(148, 163, 184, 0.25) !important;
+  font-weight: 800 !important;
+}
+
+body.dark-mode .confirm-table .row-label {
+  background: rgba(51, 65, 85, 0.7) !important;
+  color: #e2e8f0 !important;
+}
+
+body.dark-mode .confirm-table tbody .row-label {
+  background: rgba(51, 65, 85, 0.5) !important;
+  color: #cbd5e1 !important;
+  font-weight: 700 !important;
+}
+
+body.dark-mode .confirm-table td {
+  background: transparent;
+  color: #cbd5e1;
+  border-color: rgba(148, 163, 184, 0.15);
+}
+
+body.dark-mode .confirm-select {
+  background: rgba(51, 65, 85, 0.6);
+  color: #e2e8f0;
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+body.dark-mode .confirm-select:hover {
+  border-color: #3b82f6;
+}
+
+body.dark-mode .confirm-select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+body.dark-mode .status-unconfirmed {
+  color: #fecaca !important;
+  background: rgba(239, 68, 68, 0.3) !important;
+  border: 1.5px solid rgba(239, 68, 68, 0.6) !important;
+  font-weight: 700 !important;
+  padding: 0.4rem 0.6rem !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3) !important;
+}
+
+body.dark-mode .status-confirmed {
+  color: #86efac !important;
+  background: rgba(16, 185, 129, 0.3) !important;
+  border: 1.5px solid rgba(16, 185, 129, 0.6) !important;
+  font-weight: 700 !important;
+  padding: 0.4rem 0.6rem !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+}
+
+body.dark-mode .member-settings-btn {
+  color: #94a3b8;
+}
+
+body.dark-mode .member-settings-btn:hover {
+  background: rgba(51, 65, 85, 0.6);
+  color: #60a5fa;
+}
+
+body.dark-mode .no-members-msg {
+  background: rgba(30, 41, 59, 0.4);
+  border-color: rgba(148, 163, 184, 0.3);
+  color: #94a3b8;
+}

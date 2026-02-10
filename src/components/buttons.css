@@ -1,0 +1,108 @@
+
+/* Global Button Styles */
+.btn-primary, .btn-secondary, .btn-success, .btn-cancel, .btn-delete {
+  padding: 0.6rem 1.2rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.btn-primary {
+  background: var(--primary-color);
+  color: white;
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(74, 144, 226, 0.3);
+  filter: brightness(1.05);
+}
+
+.btn-secondary {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+}
+.btn-secondary:hover {
+  background: var(--bg-color);
+  border-color: #cbd5e1;
+  color: var(--text-main);
+  transform: translateY(-2px);
+}
+
+.btn-success {
+  background: #10b981;
+  color: white;
+}
+.btn-success:hover {
+  background: #059669;
+  box-shadow: 0 8px 15px rgba(16, 185, 129, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-cancel, .btn-delete {
+  background: var(--card-bg);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+.btn-cancel:hover, .btn-delete:hover {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.1);
+}
+
+/* Status Controls specific override if needed */
+.status-controls .btn-primary {
+  padding: 0.6rem 1.5rem; /* Slightly larger for main action */
+}
+
+/* Mini Buttons (for Table Controls) */
+.btn-mini {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  transition: all 0.2s;
+}
+.btn-mini:hover {
+  background: var(--bg-color);
+  color: var(--text-main);
+  border-color: #cbd5e1;
+}
+.btn-mini.danger {
+  color: #ef4444;
+  border-color: #fca5a5;
+}
+.btn-mini.danger:hover {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.btn-text {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+.btn-text:hover {
+  color: var(--primary-color);
+}

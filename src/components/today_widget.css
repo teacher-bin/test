@@ -1,0 +1,250 @@
+
+/* ================= Today Schedule Widget Styles ================= */
+.today-widget {
+  position: fixed;
+  left: 2rem;
+  top: 180px;
+  width: 260px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+  z-index: 1500;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: floatingWidget 4s ease-in-out infinite;
+}
+
+.today-widget:hover {
+  transform: translateY(-5px) scale(1.02);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes floatingWidget {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.widget-date {
+  display: flex;
+  flex-direction: column;
+}
+
+#today-month-day {
+  font-size: 1.15rem; /* Reduced from 1.4rem */
+  font-weight: 800;
+  color: #1e293b;
+  letter-spacing: -0.5px;
+  white-space: nowrap; /* Prevent wrapping */
+}
+
+.weekday {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  text-transform: uppercase;
+  margin-top: -2px;
+}
+
+.widget-add-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: var(--primary-color);
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+}
+
+.widget-add-btn:hover {
+  transform: rotate(90deg) scale(1.1);
+  background: #357abd;
+}
+
+.widget-content {
+  max-height: 300px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.widget-content::-webkit-scrollbar {
+  display: none;
+}
+
+.today-event-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem; /* Reduced from 0.8rem */
+}
+
+.event-item {
+  padding: 0.5rem 0.8rem; /* Reduced from 0.8rem 1rem */
+  border-radius: 10px; /* Slightly smaller radius */
+  background: white;
+  border-left: 4px solid var(--primary-color);
+  font-size: 0.85rem; /* Slightly smaller font */
+  font-weight: 600;
+  color: #334155;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  line-height: 1.35;
+}
+
+.event-item:hover {
+  transform: translateX(5px);
+  background: #f8fafc;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.06);
+}
+
+.category-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem; /* Reduced from 0.5rem */
+  margin-top: 0.3rem; /* Reduced from 0.5rem */
+}
+
+.category-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 0.2rem;
+  padding-left: 0.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.category-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(0,0,0,0.05);
+}
+
+/* Category Specific Styles */
+.event-item.type-edu { border-left-color: #3b82f6; } /* Blue */
+.event-item.type-staff { border-left-color: #10b981; } /* Emerald */
+.event-item.type-doc { border-left-color: #6366f1; } /* Indigo */
+.event-item.type-life { border-left-color: #f59e0b; } /* Amber */
+
+.event-item.is-holiday {
+  border-left-color: #ef4444;
+  color: #ef4444;
+  background: #fff1f2;
+}
+
+.no-event {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  text-align: center;
+  padding: 1rem 0;
+  font-style: italic;
+}
+
+.widget-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 1px;
+}
+
+.pulse-icon {
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 50%;
+  position: relative;
+}
+
+.pulse-icon::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #10b981;
+  border-radius: 50%;
+  animation: pulseAnimation 1.5s infinite;
+}
+
+@keyframes pulseAnimation {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(3); opacity: 0; }
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .today-widget {
+    display: none; /* 화면이 좁으면 가림 */
+  }
+}
+
+/* Floating Tooltip (JS Handled) */
+.widget-floating-tooltip {
+  position: fixed;
+  padding: 10px 14px;
+  background: rgba(15, 23, 42, 0.95);
+  color: white;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  white-space: pre-wrap;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-50%) translateX(-10px);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  line-height: 1.5;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: max-content;
+  max-width: 260px;
+}
+
+.widget-floating-tooltip.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* Tooltip Arrow (Optional via pseudo or JS, here we use a small triangle) */
+.widget-floating-tooltip::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  margin-top: -6px;
+  border: 6px solid transparent;
+  border-right-color: rgba(15, 23, 42, 0.95);
+}

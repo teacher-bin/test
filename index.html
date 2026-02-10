@@ -1,0 +1,2618 @@
+﻿<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>가로내 온라인 연구실</title>
+    <meta name="description" content="가로내 온라인 연구실 - 교직원 업무 지원 및 학사일정 관리 시스템" />
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="./favicon.png" />
+    <!-- Google Fonts: Outfit & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Inter:wght@300;400;600&family=Gaegu:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+     <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+     <!-- FullCalendar v6.1.15 -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+    <!-- SortableJS v1.15.0 -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <!-- Firebase Compat SDK v9.22.0 -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <!-- lunar-javascript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-javascript/1.7.4/lunar.min.js"></script>
+    <link rel="stylesheet" href="style.css?v=13" />
+    <link rel="stylesheet" href="src/components/buttons.css" />
+    <link rel="stylesheet" href="src/components/sidebar_widgets.css?v=1" />
+    <link rel="stylesheet" href="src/components/board_modal.css" />
+    <link rel="stylesheet" href="src/components/curriculum_confirm.css" />
+    <link rel="stylesheet" href="src/styles/mobile.css" />
+    <style>
+      /* CRITICAL LOGIN STYLES - OVERRIDE EVERYTHING */
+      /* CRITICAL LOGIN STYLES - OVERRIDE EVERYTHING */
+      #login-container {
+          display: flex;
+          position: fixed !important; inset: 0 !important; z-index: 9999 !important;
+          background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%) !important;
+          align-items: center; justify-content: center;
+      }
+      #login-container.hidden { display: none !important; }
+      #login-container .login-card {
+          background: white !important;
+          width: 100%; max-width: 420px;
+          padding: 2.5rem;
+          border-radius: 20px;
+          box-shadow: 0 20px 40px rgba(0,0,0,0.1) !important;
+          opacity: 1 !important; visibility: visible !important;
+          color: #1f2937 !important;
+          position: relative; z-index: 10000;
+      }
+      #login-container h1, #login-container h2, #login-container p, #login-container label, #login-container span, #login-container div, #login-container i {
+          color: #1f2937;
+          opacity: 1 !important; visibility: visible !important;
+      }
+      #login-container .login-logo { text-align: center; margin-bottom: 1.5rem; }
+      #login-container .login-logo i { font-size: 3rem; color: #3b82f6 !important; margin-bottom: 0.5rem; display: block; filter: drop-shadow(0 4px 6px rgba(59, 130, 246, 0.3)); }
+      #login-container .login-logo h1 { font-size: 1.6rem !important; margin: 0; font-weight: 800; letter-spacing: -0.5px; }
+      #login-container .login-subtitle { font-size: 0.95rem !important; color: #6b7280 !important; margin-bottom: 2rem; text-align: center; font-weight: 500; }
+
+      /* Forms */
+      #login-container .auth-form { display: none; width: 100%; }
+      #login-container .auth-form.active { display: flex !important; flex-direction: column; gap: 1rem; }
+      #login-container .auth-form.hidden { display: none !important; }
+
+      /* Inputs */
+      #login-container input, #login-container select {
+          width: 100%; 
+          padding: 0.7rem 1rem;
+          height: 50px;
+          border: 1px solid #e5e7eb !important; border-radius: 12px;
+          font-size: 1rem;
+          background: #f9fafb !important;
+          color: #111827 !important;
+          opacity: 1 !important;
+          transition: all 0.2s;
+          position: relative; z-index: 20;
+          box-sizing: border-box;
+          line-height: normal;
+      }
+      #login-container input:focus, #login-container select:focus {
+          border-color: #3b82f6 !important;
+          background: white !important;
+          box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+          outline: none;
+      }
+      #login-container label { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.35rem; display: block; color: #374151 !important; }
+
+      /* Buttons - Sophisticated */
+      #login-container .btn-full {
+          position: relative; z-index: 50; /* Ensure clickable */
+          width: 100%; padding: 1rem;
+          background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%) !important;
+          color: white !important;
+          border: none; border-radius: 12px;
+          font-weight: 700; font-size: 1rem;
+          cursor: pointer; margin-top: 0.5rem;
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          letter-spacing: 0.02em;
+      }
+      #login-container .btn-full:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+          background: linear-gradient(135deg, #4338ca 0%, #2563eb 100%) !important;
+      }
+      #login-container .btn-full:active { transform: translateY(0); }
+
+      /* Google Button */
+      #login-container .btn-google {
+          position: relative; z-index: 50;
+          width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.75rem;
+          padding: 0.9rem;
+          background: white !important;
+          border: 1px solid #e5e7eb !important; border-radius: 12px;
+          font-weight: 600; font-size: 0.95rem;
+          color: #374151 !important;
+          cursor: pointer;
+          margin-top: 1rem;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+          transition: all 0.2s;
+      }
+      #login-container .btn-google:hover {
+          background: #f9fafb !important;
+          border-color: #d1d5db !important;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      }
+
+      /* Tabs */
+      #login-container .login-tabs { display: flex; border-bottom: 2px solid #f3f4f6; margin-bottom: 1.5rem; position: relative; z-index: 50; }
+      #login-container .login-tab {
+          flex: 1; padding: 0.75rem; background: none; border: none; font-weight: 600; color: #9ca3af; cursor: pointer;
+          border-bottom: 2px solid transparent; margin-bottom: -2px; font-size: 1rem;
+          transition: color 0.3s;
+          position: relative; z-index: 51;
+      }
+      #login-container .login-tab.active { color: #3b82f6 !important; border-bottom-color: #3b82f6; }
+
+      /* Toggle */
+      /* Toggle - Updated to match global style */
+      #login-container .toggle-wrapper { display: flex; align-items: center; gap: 10px; margin-top: 4px; position: relative; z-index: 20; }
+      #login-container .switch { position: relative; display: inline-block; width: 48px; height: 26px; }
+      #login-container .switch input { opacity: 0; width: 0; height: 0; }
+      #login-container .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 34px; }
+      #login-container .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+      #login-container input:checked + .slider { background-color: #3b82f6 !important; }
+      #login-container input:checked + .slider:before { transform: translateX(22px); }
+
+      /* Alert Box */
+      #login-container .auth-alert {
+          margin: 0.5rem 0; padding: 0.85rem;
+          border-radius: 10px; font-size: 0.9rem;
+          text-align: center; display: flex; align-items: center; justify-content: center;
+          background-color: #fef2f2; color: #ef4444 !important;
+          border: 1px solid #fee2e2;
+          animation: slideDown 0.3s ease-out;
+          position: relative; z-index: 20;
+      }
+      #login-container .auth-alert.success {
+          background-color: #ecfdf5; color: #10b981 !important;
+          border-color: #d1fae5;
+      }
+      @keyframes slideDown { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+      /* Utilities */
+      #login-container .hidden { display: none !important; }
+      #login-container .form-row { display: flex; gap: 12px; }
+      #login-container .form-group { flex: 1; }
+      #login-container .divider { display: flex; align-items: center; margin: 1.5rem 0; color: #9ca3af; font-size: 0.85rem; }
+      #login-container .divider::before, #login-container .divider::after { content: ""; flex: 1; border-bottom: 1px solid #e5e7eb; }
+      #login-container .divider span { padding: 0 0.5rem; }
+      #login-container .login-footer a:hover { color: #3b82f6 !important; text-decoration: underline !important; }
+
+      /* Force Clickability on Buttons */
+      #login-container .btn-full { position: relative; z-index: 2147483647 !important; cursor: pointer; }
+      #login-container .login-tab { position: relative; z-index: 2147483647 !important; cursor: pointer; }
+      #login-container input, #login-container select { position: relative; z-index: 2147483647 !important; }
+    </style>
+  </head>
+  <body>
+    <!-- Login Section -->
+    <div id="login-container" class="login-wrapper" style="display: flex; position: fixed; inset: 0; z-index: 9999; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); align-items: center; justify-content: center;">
+        <div class="login-card" style="background: white; width: 100%; max-width: 420px; padding: 2.5rem; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+            <div class="login-logo">
+                <i class="fas fa-school"></i>
+                <h1>가로내 온라인 연구실</h1>
+            </div>
+            <p class="login-subtitle">교직원 업무 지원 및 학사일정 관리 시스템</p>
+            
+            <div class="login-tabs">
+                <button type="button" class="login-tab active" data-tab="login">로그인</button>
+                <button type="button" class="login-tab" data-tab="register">회원가입</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="login-form" class="auth-form active">
+                <div class="form-group">
+                    <label for="login-email">이메일</label>
+                    <input type="email" id="login-email" required placeholder="이메일을 입력하세요">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">비밀번호</label>
+                    <input type="password" id="login-password" required placeholder="비밀번호를 입력하세요">
+                </div>
+                <div class="auth-alert hidden"></div>
+                <button type="submit" class="btn-full">로그인</button>
+                
+                <div class="divider"><span>또는</span></div>
+                
+                <button type="button" id="google-login-btn" class="btn-google">
+                    <i class="fab fa-google"></i> Google 계정으로 로그인
+                </button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="register-form" class="auth-form hidden" novalidate>
+                <div class="form-group">
+                    <label for="reg-email">이메일 (아이디)</label>
+                    <input type="email" id="reg-email" required placeholder="이메일을 입력하세요">
+                </div>
+                <div class="form-group">
+                    <label for="reg-password">비밀번호</label>
+                    <input type="password" id="reg-password" required placeholder="6자 이상 입력하세요" minlength="6">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="reg-name">성명</label>
+                        <input type="text" id="reg-name" required placeholder="성명">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-position">직위</label>
+                        <select id="reg-position" required>
+                            <option value="">선택</option>
+                            <option value="교장">교장</option>
+                            <option value="교감">교감</option>
+                            <option value="행정실장">행정실장</option>
+                            <option value="교사(초등)">교사(초등)</option>
+                            <option value="교사(유치원)">교사(유치원)</option>
+                            <option value="주무관">주무관</option>
+                            <option value="교무행정원">교무행정원</option>
+                            <option value="돌봄전담사">돌봄전담사</option>
+                            <option value="기타">기타</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="reg-school">소속학교</label>
+                    <input type="text" id="reg-school" required value="횡천초등학교" placeholder="학교명을 입력하세요">
+                </div>
+
+                <div class="form-row" style="align-items: flex-end;">
+                    <div class="form-group" style="flex: 0 0 auto; margin-right: 10px;">
+                        <label style="display:block; margin-bottom: 6px;">담임 여부</label>
+                        <div class="toggle-wrapper">
+                            <span class="toggle-label-text">담임 아님</span>
+                            <label class="switch">
+                                <input type="checkbox" id="reg-is-homeroom">
+                                <span class="slider round"></span>
+                            </label>
+                            <span class="toggle-label-text">담임</span>
+                        </div>
+                    </div>
+                    <div id="reg-class-info-group" class="form-group hidden" style="flex: 1;">
+                        <label for="reg-class-info">학년/반 입력</label>
+                        <input type="text" id="reg-class-info" placeholder="예) 1학년, 사랑반">
+                    </div>
+                </div>
+
+                <div class="auth-alert hidden"></div>
+                <!-- Cleaned up button -->
+                <button type="button" id="btn-register-submit" class="btn-full" style="margin-top: 10px;" onclick="window.handleRegister()">가입 신청</button>
+            </form>
+
+            <!-- Google Profile Join Form -->
+            <form id="google-join-form" class="auth-form hidden">
+                <div class="login-logo" style="margin-bottom: 0.8rem;">
+                    <i class="fas fa-user-plus" style="font-size: 1.8rem; color: #4a90e2;"></i>
+                    <h2 style="font-size: 1.1rem; margin-top: 4px;">추가 정보 입력</h2>
+                </div>
+                <p style="font-size: 0.85rem; color: #666; text-align: center; margin-bottom: 1rem;">
+                    서비스 이용을 위해 프로필을 완성해주세요.
+                </p>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="g-reg-name">성명</label>
+                        <input type="text" id="g-reg-name" required placeholder="성명">
+                    </div>
+                    <div class="form-group">
+                        <label for="g-reg-position">직위</label>
+                        <select id="g-reg-position" required>
+                            <option value="">선택</option>
+                            <option value="교장">교장</option>
+                            <option value="교감">교감</option>
+                            <option value="행정실장">행정실장</option>
+                            <option value="교사(초등)">교사(초등)</option>
+                            <option value="교사(유치원)">교사(유치원)</option>
+                            <option value="주무관">주무관</option>
+                            <option value="교무행정원">교무행정원</option>
+                            <option value="돌봄전담사">돌봄전담사</option>
+                            <option value="기타">기타</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="g-reg-school">소속학교</label>
+                    <input type="text" id="g-reg-school" required value="횡천초등학교" placeholder="학교명을 입력하세요">
+                </div>
+
+                <div class="form-row" style="align-items: flex-end;">
+                    <div class="form-group" style="flex: 0 0 auto; margin-right: 10px;">
+                        <label style="display:block; margin-bottom: 6px;">담임 여부</label>
+                        <div class="toggle-wrapper">
+                            <span class="toggle-label-text">담임 아님</span>
+                            <label class="switch">
+                                <input type="checkbox" id="g-reg-is-homeroom">
+                                <span class="slider round"></span>
+                            </label>
+                            <span class="toggle-label-text">담임</span>
+                        </div>
+                    </div>
+                    <div id="g-reg-class-info-group" class="form-group hidden" style="flex: 1;">
+                        <label for="g-reg-class-info">학년/반 입력</label>
+                        <input type="text" id="g-reg-class-info" placeholder="예) 1학년, 사랑반">
+                    </div>
+                </div>
+
+                <div class="auth-alert hidden"></div>
+                <button type="submit" class="btn-full" style="margin-top: 10px;">가입 완료</button>
+                <button type="button" id="g-cancel-btn" style="width: 100%; padding: 8px; margin-top: 0.5rem; background: transparent; color: #666; border: none; cursor: pointer; text-decoration: underline; font-size: 0.85rem;">취소</button>
+            </form>
+            
+            <!-- Old Global Alert Removed -->
+            <div class="login-footer" style="margin-top: 1.5rem; text-align: center; font-size: 0.85rem; color: #6b7280; border-top: 1px solid #f3f4f6; padding-top: 1rem;">
+                <a href="privacy.html" target="_blank" style="color: #6b7280; text-decoration: none; margin: 0 4px;">개인정보처리방침</a>
+                <span style="color: #d1d5db;">|</span>
+                <a href="#" onclick="alert('서비스 이용약관은 준비 중입니다.'); return false;" style="color: #6b7280; text-decoration: none; margin: 0 4px;">서비스이용약관</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Container (Initially Hidden) -->
+    <div id="app-container" class="hidden">
+    <header>
+      <div class="header-container">
+        <div class="header-inner">
+          <nav id="category-nav">
+            <button class="nav-item active" data-category="all">홈</button>
+            <button class="nav-item" data-category="status">학교현황</button>
+            <button class="nav-item" data-category="account">학교계정</button>
+            <button class="nav-item" data-category="curriculum">학사일정</button>
+            <button class="nav-item" data-category="bus">배차신청</button>
+            <button class="nav-item" data-category="datayard">자료마당</button>
+            <button class="nav-item" data-category="support">온학교 e지원</button>
+            <button class="nav-item hidden" id="nav-admin-btn" data-category="admin">관리자</button>
+          </nav>
+
+          <div class="header-user-panel">
+            <div class="header-top-row">
+              <label class="theme-switch" for="checkbox">
+                <input type="checkbox" id="checkbox" />
+                <div class="slider round">
+                  <i class="fas fa-sun"></i>
+                  <i class="fas fa-moon"></i>
+                </div>
+              </label>
+              <div class="profile-icon-group" style="position: relative; display: flex;">
+                <button id="profile-btn" class="header-icon-btn profile-btn" title="프로필 설정"><i class="fas fa-user-circle"></i></button>
+                <i id="header-admin-crown" class="fas fa-crown header-admin-crown hidden"></i>
+              </div>
+              <button id="logout-btn" class="header-icon-btn logout-btn" title="로그아웃"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+            <div id="user-greeting" class="user-greeting"></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+
+      <section id="intro-section" class="intro-section">
+        <canvas id="intro-canvas"></canvas>
+        <div class="intro-blobs">
+          <div class="blob b-1"></div>
+          <div class="blob b-2"></div>
+          <div class="blob b-3"></div>
+          <div class="blob b-4"></div>
+          <div class="blob b-5"></div>
+        </div>
+        <div class="intro-landing-container">
+          <!-- Edit controls remain at the top/corner -->
+
+
+          <!-- 1 & 2. Top Header Bar (Title + Search) -->
+          <div class="intro-header-bar">
+            <div class="intro-cheer-message">
+              <span class="line-1">오늘도 힘내세요!</span>
+              <span class="line-2">가로내 선생님을 응원합니다.</span>
+            </div>
+
+            <div class="intro-search-area">
+              <form class="intro-naver-search" action="https://search.naver.com/search.naver" method="get" target="_blank">
+                <input type="hidden" name="where" value="nexearch">
+                <span class="intro-naver-logo">N</span>
+                <input
+                  type="text"
+                  name="query"
+                  placeholder="네이버 검색"
+                  autocomplete="off"
+                />
+                <button type="submit" class="intro-search-btn"><i class="fas fa-search"></i></button>
+              </form>
+            </div>
+          </div>
+
+          <!-- 3. Shortcuts (Moved from separate tab) -->
+          <section id="shortcut-section" class="shortcut-section">
+            <div class="shortcut-controls">
+              <button id="edit-mode-btn" class="btn-primary admin-feature hidden"><i class="fas fa-edit"></i> 바로가기 편집</button>
+              <div id="edit-actions" class="hidden">
+                <button id="add-group-btn" class="btn-secondary"><i class="fas fa-folder-plus"></i> 그룹 추가</button>
+                <button id="save-order-btn" class="btn-success"><i class="fas fa-save"></i> 저장 완료</button>
+                <button id="cancel-edit-btn" class="btn-cancel"><i class="fas fa-times"></i> 취소</button>
+              </div>
+            </div>
+            <div id="shortcut-container" class="shortcut-grid">
+              <!-- JavaScript를 통해 바로가기 그룹이 여기에 렌더링됩니다 -->
+            </div>
+          </section>
+
+          <!-- 3. Mini Footer -->
+          <div class="intro-mini-footer">
+            <p>&copy; 2026 가로내 온라인 연구실. 업무 지원 AI 비서 Gemini가 함께합니다.</p>
+          </div>
+        </div>
+      </section>
+      
+      <section id="links-grid" class="links-grid hidden">
+        <!-- JavaScript를 통해 카드가 여기에 렌더링됩니다 -->
+      </section>
+
+      <section id="status-section" class="status-section hidden">
+
+        <div id="status-header" class="status-header">
+          <div id="status-tabs-container" class="status-tabs">
+            <!-- JavaScript를 통해 탭이 여기에 렌더링됩니다 -->
+          </div>
+          <!-- Edit controls will be moved here by JS -->
+        </div>
+        <div id="status-panels-container">
+          <!-- JavaScript를 통해 활성화된 패널(표)이 여기에 렌더링됩니다 -->
+        </div>
+      </section>
+
+    <!-- SortableJS -->
+
+
+
+    <!-- Shortcut Edit Modal -->
+    <div id="shortcutModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="shortcutModalTitle">바로가기 추가</h2>
+          <span class="close-modal close-shortcut-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <form id="shortcutForm">
+            <input type="hidden" id="shortcut-id">
+            <input type="hidden" id="shortcut-group-id">
+            <div class="form-group">
+              <label for="shortcut-title">이름</label>
+              <input type="text" id="shortcut-title" required placeholder="예: 네이버">
+            </div>
+            <div class="form-group">
+              <label for="shortcut-url">URL</label>
+              <input type="url" id="shortcut-url" required placeholder="https://example.com">
+            </div>
+            
+            <div class="form-group">
+              <label>아이콘 설정</label>
+              <div class="icon-type-tabs">
+                <button type="button" class="icon-tab active" data-tab="preset">아이콘 선택</button>
+                <button type="button" class="icon-tab" data-tab="custom">이미지 첨부</button>
+              </div>
+              
+              <!-- Tab 1: Preset Icons -->
+              <div id="icon-tab-preset" class="icon-tab-content active">
+                <div class="icon-selector" id="icon-selector">
+                  <div class="icon-option selected" data-icon="fa-link"><i class="fas fa-link"></i></div>
+                  <div class="icon-option" data-icon="fa-search"><i class="fas fa-search"></i></div>
+                  <div class="icon-option" data-icon="fa-home"><i class="fas fa-home"></i></div>
+                  <div class="icon-option" data-icon="fa-building"><i class="fas fa-building"></i></div>
+                  <div class="icon-option" data-icon="fa-book"><i class="fas fa-book"></i></div>
+                  <div class="icon-option" data-icon="fa-chalkboard"><i class="fas fa-chalkboard"></i></div>
+                  <div class="icon-option" data-icon="fa-desktop"><i class="fas fa-desktop"></i></div>
+                  <div class="icon-option" data-icon="fa-calendar"><i class="fas fa-calendar"></i></div>
+                  <div class="icon-option" data-icon="fa-users"><i class="fas fa-users"></i></div>
+                  <div class="icon-option" data-icon="fa-music"><i class="fas fa-music"></i></div>
+                  <div class="icon-option" data-icon="fa-video"><i class="fas fa-video"></i></div>
+                  <div class="icon-option" data-icon="fa-image"><i class="fas fa-image"></i></div>
+                  <div class="icon-option" data-icon="fa-file"><i class="fas fa-file"></i></div>
+                  <div class="icon-option" data-icon="fa-shopping-cart"><i class="fas fa-shopping-cart"></i></div>
+                </div>
+              </div>
+
+              <!-- Tab 2: Custom Image -->
+              <div id="icon-tab-custom" class="icon-tab-content">
+                 <div class="custom-icon-inputs">
+                    <p class="helper-text">* 권장 크기: 64x64px 이상 1:1 비율</p>
+                    <label class="radio-label">
+                        <input type="radio" name="image-source" value="url" checked> 이미지 주소(URL) 입력
+                    </label>
+                    <input type="url" id="shortcut-image-url" placeholder="https://example.com/icon.png">
+                    
+                    <label class="radio-label" style="margin-top: 10px;">
+                        <input type="radio" name="image-source" value="file"> 이미지 파일 업로드 (20KB 미만)
+                    </label>
+                    <input type="file" id="shortcut-image-file" accept="image/*">
+                    <input type="hidden" id="shortcut-image-base64">
+                    
+                    <div id="image-preview" class="image-preview hidden">
+                        <img src="" alt="Preview">
+                        <button type="button" id="clear-image">삭제</button>
+                    </div>
+                 </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-cancel close-shortcut-modal">취소</button>
+            <button type="submit" form="shortcutForm" class="btn-save">저장</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Board Post Modal (Refined) -->
+    <div id="boardPostModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="boardModalTitle">메모 작성</h2>
+          <span class="close-modal close-board-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <form id="boardPostForm">
+            <input type="hidden" id="post-id">
+            
+            <div class="form-group">
+              <label>내용</label>
+              <div id="post-content-editor" contenteditable="true" placeholder="무슨 생각을 하고 계신가요?"></div>
+            </div>
+
+            <div class="form-group">
+              <label>작성자</label>
+              <div id="post-author-chips" class="author-chips">
+                <!-- JS에서 버튼 칩들이 생성됩니다 -->
+              </div>
+              <input type="hidden" id="selected-post-author" value="">
+              <input type="text" id="post-author-custom" style="display: none;" placeholder="닉네임을 입력해주세요">
+            </div>
+
+            <div class="form-group">
+              <label>파일 첨부</label>
+              <div id="file-drop-zone" class="file-drop-zone">
+                <i class="fas fa-paperclip"></i>
+                <p>파일 선택 또는 드래그</p>
+                <input type="file" id="post-file-input" hidden>
+              </div>
+              <div id="file-preview-area" class="file-preview-area hidden">
+                <span id="file-name-display"></span>
+                <button type="button" id="remove-file-btn"><i class="fas fa-times"></i></button>
+              </div>
+            </div>
+
+            <div class="form-row" style="display: flex; justify-content: space-between; align-items: flex-end;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label>상태</label>
+                <div class="status-pill-group" id="post-status-selector">
+                  <input type="radio" name="post-status" id="status-normal" value="normal" class="status-check-tag" checked>
+                  <label for="status-normal" class="status-label normal">일반</label>
+                  
+                  <input type="radio" name="post-status" id="status-important" value="important" class="status-check-tag">
+                  <label for="status-important" class="status-label important">중요</label>
+                  
+                  <input type="radio" name="post-status" id="status-urgent" value="urgent" class="status-check-tag">
+                  <label for="status-urgent" class="status-label urgent">긴급</label>
+                </div>
+              </div>
+              
+              <div class="form-group" style="margin-bottom: 0;">
+                <label>색상</label>
+                <div class="color-picker-container">
+                  <div id="color-trigger" class="color-trigger" style="background-color: #fff9c4;">
+                    <i class="fas fa-palette" style="opacity: 0.5; font-size: 0.8rem;"></i>
+                  </div>
+                  <div id="color-popover" class="color-options-popover">
+                    <div class="color-option selected" data-color="#fff9c4" style="background-color: #fff9c4;"></div>
+                    <div class="color-option" data-color="#e3f2fd" style="background-color: #e3f2fd;"></div>
+                    <div class="color-option" data-color="#f3e5f5" style="background-color: #f3e5f5;"></div>
+                    <div class="color-option" data-color="#e8f5e9" style="background-color: #e8f5e9;"></div>
+                    <div class="color-option" data-color="#fff3e0" style="background-color: #fff3e0;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-memo-cancel close-board-modal">취소</button>
+            <button type="submit" form="boardPostForm" class="btn-memo-save">올리기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Group Edit Modal -->
+    <div id="groupModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="groupModalTitle">그룹 추가</h2>
+          <span class="close-modal close-group-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <form id="groupForm">
+            <input type="hidden" id="group-id">
+            <div class="form-group">
+              <label for="group-title">그룹명</label>
+              <input type="text" id="group-title" required placeholder="예: 자주 쓰는 사이트">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-cancel close-group-modal">취소</button>
+            <button type="submit" form="groupForm" class="btn-save">저장</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Datayard Group Modal -->
+    <div id="datayardGroupModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="datayardGroupModalTitle">그룹 추가</h2>
+          <span class="close-modal close-datayard-group-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <form id="datayardGroupForm">
+            <input type="hidden" id="datayard-group-id">
+            <div class="form-group">
+              <label for="datayard-group-title">그룹명</label>
+              <input type="text" id="datayard-group-title" required placeholder="예: 일반자료">
+            </div>
+            <div class="form-group">
+              <label>아이콘 선택</label>
+              <div class="icon-selector" id="datayard-group-icon-selector">
+                <div class="icon-option selected" data-icon="fa-folder"><i class="fas fa-folder"></i></div>
+                <div class="icon-option" data-icon="fa-folder-open"><i class="fas fa-folder-open"></i></div>
+                <div class="icon-option" data-icon="fa-file-alt"><i class="fas fa-file-alt"></i></div>
+                <div class="icon-option" data-icon="fa-archive"><i class="fas fa-archive"></i></div>
+                <div class="icon-option" data-icon="fa-book"><i class="fas fa-book"></i></div>
+                <div class="icon-option" data-icon="fa-graduation-cap"><i class="fas fa-graduation-cap"></i></div>
+                <div class="icon-option" data-icon="fa-chalkboard-teacher"><i class="fas fa-chalkboard-teacher"></i></div>
+                <div class="icon-option" data-icon="fa-user-clock"><i class="fas fa-user-clock"></i></div>
+                <div class="icon-option" data-icon="fa-calendar-check"><i class="fas fa-calendar-check"></i></div>
+                <div class="icon-option" data-icon="fa-balance-scale"><i class="fas fa-balance-scale"></i></div>
+                <div class="icon-option" data-icon="fa-briefcase"><i class="fas fa-briefcase"></i></div>
+                <div class="icon-option" data-icon="fa-tools"><i class="fas fa-tools"></i></div>
+                <div class="icon-option" data-icon="fa-cloud-download-alt"><i class="fas fa-cloud-download-alt"></i></div>
+                <div class="icon-option" data-icon="fa-info-circle"><i class="fas fa-info-circle"></i></div>
+              </div>
+              <input type="hidden" id="datayard-group-icon" value="fa-folder">
+            </div>
+            <div class="form-group">
+              <label for="datayard-group-color">테마 색상</label>
+              <select id="datayard-group-color" class="form-select">
+                <option value="blue">Blue</option>
+                <option value="green">Green</option>
+                <option value="purple">Purple</option>
+                <option value="red">Red</option>
+                <option value="yellow">Yellow</option>
+                <option value="emerald">Emerald</option>
+                <option value="pink">Pink</option>
+                <option value="amber">Amber</option>
+                <option value="violet">Violet</option>
+              </select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-cancel close-datayard-group-modal">취소</button>
+            <button type="submit" form="datayardGroupForm" class="btn-save">저장</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Datayard Item Modal -->
+    <div id="datayardItemModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="datayardItemModalTitle">자료 추가</h2>
+          <span class="close-modal close-datayard-item-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <form id="datayardItemForm">
+            <input type="hidden" id="datayard-item-id">
+            <input type="hidden" id="datayard-item-group-id">
+            <div class="form-group">
+              <label for="datayard-item-title">자료 이름</label>
+              <input type="text" id="datayard-item-title" required placeholder="예: 2026 교육계획">
+            </div>
+            <div class="form-group">
+              <label>파일 설정</label>
+              <div class="file-type-tabs">
+                <button type="button" class="item-tab active" data-tab="upload">파일 업로드</button>
+                <button type="button" class="item-tab" data-tab="url">URL 입력</button>
+              </div>
+              
+              <div id="item-tab-upload" class="item-tab-content active">
+                <div class="file-upload-area" id="datayard-file-drop-zone">
+                  <i class="fas fa-cloud-upload-alt"></i>
+                  <p>파일을 여기로 드래그하거나 클릭하여 선택하세요.</p>
+                  <input type="file" id="datayard-file-input" hidden>
+                </div>
+                <div id="datayard-file-preview" class="file-preview-area hidden">
+                  <span id="datayard-file-name-display"></span>
+                  <button type="button" id="datayard-remove-file-btn"><i class="fas fa-times"></i></button>
+                </div>
+                <input type="hidden" id="datayard-item-url">
+              </div>
+
+              <div id="item-tab-url" class="item-tab-content">
+                <div class="form-group">
+                  <label for="datayard-item-url-input">URL</label>
+                  <input type="url" id="datayard-item-url-input" placeholder="https://example.com/file.pdf">
+                </div>
+              </div>
+            </div>
+          </form>
+          <div id="datayard-upload-progress" class="hidden">
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 0%;"></div>
+            </div>
+            <p class="progress-text">업로드 중... (0%)</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-cancel close-datayard-item-modal">취소</button>
+            <button type="submit" form="datayardItemForm" class="btn-save">저장</button>
+        </div>
+      </div>
+    </div>
+
+      <!-- Datayard Section -->
+    <section id="datayard-section" class="category-content hidden">
+      <div class="helppage-header">
+        <h2>횡천초등학교 업무 도움자료</h2>
+        <p>선생님들의 자료를 공유해주세요!</p>
+      </div>
+      <div class="datayard-controls">
+        <button id="datayard-edit-mode-btn" class="btn-primary admin-feature hidden"><i class="fas fa-edit"></i> 자료마당 편집</button>
+        <div id="datayard-edit-actions" class="hidden">
+          <button id="datayard-add-group-btn" class="btn-secondary"><i class="fas fa-folder-plus"></i> 그룹 추가</button>
+          <button id="datayard-save-order-btn" class="btn-success"><i class="fas fa-save"></i> 저장 완료</button>
+          <button id="datayard-cancel-edit-btn" class="btn-cancel"><i class="fas fa-times"></i> 취소</button>
+        </div>
+      </div>
+      <div id="datayard-container" class="helppage-grid">
+        <!-- JavaScript를 통해 자료마당 그룹이 여기에 렌더링됩니다 -->
+      </div>
+    </section>
+
+    <!-- Account Section (학교계정) -->
+    <section id="account-section" class="category-content hidden">
+
+      <div id="account-controls" class="section-controls">
+        <button id="account-edit-mode-btn" class="btn-primary admin-feature hidden"><i class="fas fa-edit"></i> 학교계정 편집</button>
+        <div id="account-edit-actions" class="hidden">
+          <button id="account-add-btn" class="btn-secondary"><i class="fas fa-plus"></i> 계정 추가</button>
+          <button id="account-import-btn" class="btn-secondary"><i class="fas fa-file-import"></i> 엑셀 가져오기</button>
+          <button id="account-template-btn" class="btn-secondary"><i class="fas fa-download"></i> 서식 다운로드</button>
+          <button id="account-save-btn" class="btn-success"><i class="fas fa-save"></i> 저장 완료</button>
+          <button id="account-cancel-btn" class="btn-cancel"><i class="fas fa-times"></i> 취소</button>
+          <input type="file" id="account-excel-input" accept=".xlsx, .xls, .csv" style="display:none;">
+        </div>
+      </div>
+
+      <div class="account-table-wrapper">
+        <table class="account-table">
+          <thead>
+            <tr>
+              <th style="width: 60px;">번호</th>
+              <th>서비스명</th>
+              <th>아이디</th>
+              <th>비밀번호</th>
+              <th>비고</th>
+              <th class="edit-col hidden" style="width: 100px;">관리</th>
+            </tr>
+          </thead>
+          <tbody id="account-table-body">
+            <!-- JavaScript에서 렌더링 -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Bus Section (배차신청) -->
+    <section id="bus-section" class="category-content hidden">
+      <div id="bus-controls" class="section-controls">
+        <button id="bus-request-btn" class="btn-primary" onclick="window.openBusModal()"><i class="fas fa-plus-circle"></i> 배차 신청</button>
+      </div>
+
+      <div class="bus-table-wrapper spreadsheet-mode">
+        <table class="bus-table">
+          <thead>
+            <tr>
+              <th style="width: 40px;">
+                <div style="position: relative; display: inline-flex; justify-content: center; align-items: center; overflow: visible;">
+                  확인
+                  <span class="driver-badge">운전주무관님♡</span>
+                </div>
+              </th>
+              <th style="width: 75px;">접수상황</th>
+              <th style="width: 105px; cursor: pointer;" data-sort="date">날짜 <i class="fas fa-sort"></i></th>
+              <th style="width: 100px; cursor: pointer;" data-sort="timeRange">시간 <i class="fas fa-sort"></i></th>
+              <th style="width: 65px; cursor: pointer;" data-sort="region">관내/외 <i class="fas fa-sort"></i></th>
+              <th style="width: 110px; cursor: pointer;" data-sort="busType">차형(인승) <i class="fas fa-sort"></i></th>
+              <th style="width: 45px; cursor: pointer;" data-sort="busCount">대수 <i class="fas fa-sort"></i></th>
+              <th style="width: 140px; cursor: pointer;" data-sort="destination">목적지 <i class="fas fa-sort"></i></th>
+              <th style="width: 65px; cursor: pointer;" data-sort="useSchoolBus">본교차량 <i class="fas fa-sort"></i></th>
+              <th style="width: 80px; cursor: pointer;" data-sort="leadTeacher">인솔교사 <i class="fas fa-sort"></i></th>
+              <th style="width: 40px; cursor: pointer;" data-sort="teacherCount">교사 <i class="fas fa-sort"></i></th>
+              <th style="width: 40px; cursor: pointer;" data-sort="studentCount">학생 <i class="fas fa-sort"></i></th>
+              <th style="width: 40px; cursor: pointer;" data-sort="total">계 <i class="fas fa-sort"></i></th>
+              <th style="width: 160px; cursor: pointer;" data-sort="purpose">신청 목적 <i class="fas fa-sort"></i></th>
+              <th style="width: 40px;">관리</th>
+            </tr>
+          </thead>
+          <tbody id="bus-table-body">
+            <!-- JavaScript 렌더링 -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Helppage Section (온학교 e지원) -->
+    <section id="helppage-section" class="category-content hidden"></section>
+
+
+
+    
+    <!-- Admin Section -->
+    <section id="admin-section" class="category-content hidden">
+      <div class="admin-container">
+        <!-- Top Navigation Menu (Replaces Sidebar) -->
+        <nav class="admin-top-menu">
+            <button class="admin-nav-btn active" onclick="switchAdminView('dashboard')" data-view="dashboard">
+                <i class="fas fa-chart-pie"></i> 대시보드
+            </button>
+            <button class="admin-nav-btn" onclick="switchAdminView('users')" data-view="users">
+                <i class="fas fa-users"></i> 교직원 현황
+            </button>
+            <button class="admin-nav-btn" onclick="switchAdminView('logs')" data-view="logs">
+                <i class="fas fa-history"></i> 관리자 로그
+            </button>
+            <button class="admin-nav-btn" onclick="switchAdminView('user-logs')" data-view="user-logs">
+                <i class="fas fa-shoe-prints"></i> 사용자 로그
+            </button>
+            <button class="admin-nav-btn" onclick="switchAdminView('bin')" data-view="bin">
+                <i class="fas fa-trash-restore"></i> 휴지통
+            </button>
+            <button class="admin-nav-btn download-csv" onclick="downloadUserCSV()">
+                <i class="fas fa-file-csv"></i> 명부 다운로드
+            </button>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="admin-content">
+            
+            <!-- View: Dashboard -->
+            <div id="admin-view-dashboard" class="admin-view active">
+                <div class="view-header">
+                    <h2>대시보드</h2>
+                    <p class="view-desc">시스템 현황을 한눈에 확인하세요.</p>
+                </div>
+                
+                <div class="admin-stats-grid">
+                    <div class="stat-card total" onclick="switchAdminView('users')">
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
+                        <div class="stat-info">
+                            <h3>전체 회원</h3>
+                            <span id="stat-total-users">0</span>
+                        </div>
+                    </div>
+                    <!-- Teacher card removed as requested -->
+                    <div class="stat-card pending" onclick="switchAdminView('users'); filterAdminList('pending')">
+                        <div class="stat-icon"><i class="fas fa-user-clock"></i></div>
+                        <div class="stat-info">
+                            <h3>승인 대기</h3>
+                            <span id="stat-pending-users">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card deleted" onclick="switchAdminView('bin')">
+                         <div class="stat-icon"><i class="fas fa-user-slash"></i></div>
+                        <div class="stat-info">
+                            <h3>삭제된 회원</h3>
+                            <span id="stat-deleted-users">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Dashboard Section (New) -->
+                <div class="dashboard-widgets">
+                    <div class="dashboard-widget full-width stats-widget-container">
+                        <div class="stats-header">
+                            <div class="stats-title">
+                                <h3>액티브 유저 수</h3>
+                            </div>
+                            <div class="stats-controls">
+                                <div class="stats-period-buttons">
+                                    <button class="period-btn active" data-period="daily" onclick="updateStatsPeriod('daily', this)">일간</button>
+                                    <button class="period-btn" data-period="weekly" onclick="updateStatsPeriod('weekly', this)">주간</button>
+                                    <button class="period-btn" data-period="monthly" onclick="updateStatsPeriod('monthly', this)">월간</button>
+                                </div>
+                                <select id="stats-month-select" class="curr-input stats-select" onchange="updateStatsFromSelect()">
+                                    <option value="1">1개월</option>
+                                    <option value="3">3개월</option>
+                                    <option value="6">6개월</option>
+                                    <option value="12">12개월</option>
+                                </select>
+                                <div class="stats-date-range">
+                                    <input type="date" id="stats-start-date" class="curr-input date-input" onchange="updateStatsFromDate()">
+                                    <span class="range-sep">-</span>
+                                    <input type="date" id="stats-end-date" class="curr-input date-input" onchange="updateStatsFromDate()">
+                                </div>
+                                <button class="btn-primary btn-sm stats-download-btn" onclick="downloadStatsExcel()">
+                                    <i class="fas fa-download"></i> 통계 다운로드
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Legend -->
+                        <div class="stats-legend">
+                            <span class="legend-dot"></span>
+                            <span class="legend-text">액티브 유저 수</span>
+                        </div>
+
+                        <!-- Chart Container -->
+                        <div class="stats-chart-wrapper">
+                            <div class="stats-chart-scroll-inner">
+                                <canvas id="userStatsChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Data Table -->
+                        <div class="stats-table-scroll-container">
+                            <div class="stats-table-wrapper">
+                                <table id="stats-data-table">
+                                    <thead id="stats-table-head">
+                                        <!-- Dynamic Dates -->
+                                    </thead>
+                                    <tbody id="stats-table-body">
+                                        <!-- Dynamic Counts -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View: Users -->
+            <div id="admin-view-users" class="admin-view">
+                <div class="view-header">
+                    <h2>회원 관리</h2>
+                    <div class="view-actions">
+                         <!-- Toggle Switch Filter -->
+                         <!-- Segmented Control Filter -->
+                         <div class="admin-segmented-control">
+                            <button class="segment-btn active" id="seg-all" onclick="filterAdminList('all')">전체</button>
+                            <button class="segment-btn" id="seg-pending" onclick="filterAdminList('pending')">승인 대기</button>
+                        </div>
+                        
+                        <div class="admin-search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="admin-search-input" placeholder="이름, 이메일 검색" onkeyup="renderAdminTable()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-table-wrapper">
+                  <table class="admin-table">
+                    <thead>
+                      <tr>
+                        <th onclick="sortAdminList('role')" data-sort="role" data-label="권한" style="cursor:pointer; width: 10%;">권한</th>
+                        <th onclick="sortAdminList('school')" data-sort="school" data-label="소속학교" style="cursor:pointer; width: 15%;">소속학교</th>
+                        <th onclick="sortAdminList('position')" data-sort="position" data-label="직위" style="cursor:pointer; width: 10%;">직위</th>
+                        <th onclick="sortAdminList('name')" data-sort="name" data-label="성명" style="cursor:pointer; width: 10%;">성명</th>
+                        <th onclick="sortAdminList('classInfo')" data-sort="classInfo" data-label="상세정보" style="cursor:pointer; width: 10%;">상세정보</th>
+                        <th onclick="sortAdminList('email')" data-sort="email" data-label="이메일" style="cursor:pointer; width: 20%;">이메일</th>
+                        <th onclick="sortAdminList('createdAt')" data-sort="createdAt" data-label="가입일" style="cursor:pointer; width: 10%;">가입일</th>
+                        <th onclick="sortAdminList('approved')" data-sort="approved" data-label="상태" style="cursor:pointer; width: 8%;">상태</th>
+                        <th style="width: 7%;">관리</th>
+                      </tr>
+                    </thead>
+                    <tbody id="admin-user-list">
+                      <!-- JS Populated -->
+                    </tbody>
+                  </table>
+                </div>
+            </div>
+
+            <!-- View: Logs -->
+            <div id="admin-view-logs" class="admin-view">
+                <div class="view-header">
+                    <h2>관리자 로그</h2>
+                    <p class="view-desc">시스템의 주요 변경 내역을 확인합니다.</p>
+                </div>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table log-table">
+                        <thead>
+                            <tr>
+                                <th>시간</th>
+                                <th>관리자</th>
+                                <th>작업</th>
+                                <th>대상</th>
+                                <th>내용</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-log-list">
+                            <!-- JS Populated -->
+                            <tr><td colspan="5" style="text-align:center; padding:2rem;">로그 데이터가 없습니다.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="admin-log-pagination" class="pagination"></div>
+            </div>
+
+            <!-- View: User Logs -->
+            <div id="admin-view-user-logs" class="admin-view">
+                <div class="view-header">
+                    <h2>사용자 로그</h2>
+                    <p class="view-desc">사용자들의 주요 활동 내역을 확인합니다.</p>
+                </div>
+
+                <!-- Filter Bar -->
+                <div class="log-filter-bar">
+                    <div class="filter-group">
+                        <label>기간</label>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="date" id="filter-user-log-start" class="curr-input" style="min-width: 130px;">
+                            <span style="color: var(--text-muted);">~</span>
+                            <input type="date" id="filter-user-log-end" class="curr-input" style="min-width: 130px;">
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label>사용자</label>
+                        <input type="text" id="filter-user-log-name" class="curr-input" placeholder="이름 검색">
+                    </div>
+                    <div class="filter-group">
+                        <label>활동 유형</label>
+                        <select id="filter-user-log-action" class="curr-input">
+                            <option value="">전체</option>
+                            <option value="조회">조회</option>
+                            <option value="생성">생성</option>
+                            <option value="수정">수정</option>
+                            <option value="삭제">삭제</option>
+                            <option value="복사">복사</option>
+                            <option value="다운로드">다운로드</option>
+                            <option value="이동">이동</option>
+                            <option value="신청">배차신청</option>
+                            <option value="접수">배차접수</option>
+                            <option value="취소">배차취소</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>카테고리</label>
+                        <select id="filter-user-log-category" class="curr-input">
+                            <option value="">전체</option>
+                            <option value="all">홈</option>
+                            <option value="status">학교현황</option>
+                            <option value="account">학교계정</option>
+                            <option value="curriculum">학사일정</option>
+                            <option value="bus">배차신청</option>
+                            <option value="datayard">자료마당</option>
+                            <option value="support">온학교 e지원</option>
+                            <option value="admin">관리자</option>
+                        </select>
+                    </div>
+                    <button class="btn-filter-apply" onclick="loadUserLogs()">
+                        <i class="fas fa-search"></i> 조회
+                    </button>
+                    <button class="btn-filter-reset" onclick="resetUserLogFilters()" style="background: none; border: 1px solid var(--border-color); color: var(--text-muted); padding: 0.5rem 0.75rem; border-radius: 8px; font-size: 0.8rem; cursor: pointer; height: 36px;">
+                        초기화
+                    </button>
+                </div>
+
+                <div class="admin-table-wrapper">
+                    <table class="admin-table log-table">
+                        <thead>
+                            <tr>
+                                <th>시간</th>
+                                <th>사용자</th>
+                                <th>활동</th>
+                                <th>대상</th>
+                                <th>카테고리</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-user-log-list">
+                            <tr><td colspan="5" class="text-center py-4">로딩 중...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="admin-user-log-pagination" class="pagination"></div>
+            </div>
+
+            <!-- View: Recycle Bin -->
+            <div id="admin-view-bin" class="admin-view">
+                <div class="view-header">
+                    <h2>휴지통</h2>
+                    <p class="view-desc">삭제된 회원을 복구하거나 영구 삭제합니다.</p>
+                </div>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table bin-table">
+                        <thead>
+                            <tr>
+                                <th>삭제일시</th>
+                                <th>성명</th>
+                                <th>이메일</th>
+                                <th>직위</th>
+                                <th>삭제 전 상태</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-bin-list">
+                            <!-- JS Populated -->
+                             <tr><td colspan="6" style="text-align:center; padding:2rem;">휴지통이 비었습니다.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+      </div>
+    </section>
+
+    <!-- Admin User Edit Modal -->
+    <div id="adminUserModal" class="modal">
+        <div class="modal-content admin-edit-content">
+            <div class="modal-header">
+                <h2>회원 정보 수정</h2>
+                <span class="close-modal close-admin-user-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="adminUserForm">
+                    <input type="hidden" id="admin-edit-uid">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>성명</label>
+                            <input type="text" id="admin-edit-name" required placeholder="성명">
+                        </div>
+                        <div class="form-group">
+                            <label>이메일</label>
+                            <input type="email" id="admin-edit-email" disabled style="background: #f1f5f9; color: #94a3b8;">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>소속학교</label>
+                            <input type="text" id="admin-edit-school" required placeholder="학교명">
+                        </div>
+                        <div class="form-group">
+                            <label>직위</label>
+                            <select id="admin-edit-position" required>
+                                <option value="교장">교장</option>
+                                <option value="교감">교감</option>
+                                <option value="행정실장">행정실장</option>
+                                <option value="교사(초등)">교사(초등)</option>
+                                <option value="교사(유치원)">교사(유치원)</option>
+                                <option value="주무관">주무관</option>
+                                <option value="교무행정원">교무행정원</option>
+                                <option value="돌봄전담사">돌봄전담사</option>
+                                <option value="기타">기타</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row" id="admin-role-edit-row">
+                        <div class="form-group">
+                            <label>사용자 권한</label>
+                            <select id="admin-edit-role" required>
+                                <option value="user">일반 사용자</option>
+                                <option value="sub-admin">부관리자</option>
+                                <option value="admin">최고관리자</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row" style="align-items: flex-end; margin-top: 10px;">
+                        <div class="form-group" style="flex: 0 0 auto; margin-right: 15px;">
+                            <label style="display:block; margin-bottom: 6px;">담임 여부</label>
+                            <div class="toggle-wrapper">
+                                <span class="toggle-label-text">담임 아님</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="admin-edit-is-homeroom">
+                                    <span class="slider round"></span>
+                                </label>
+                                <span class="toggle-label-text">담임</span>
+                            </div>
+                        </div>
+                        <div id="admin-edit-class-info-group" class="form-group hidden" style="flex: 1;">
+                            <label>학년/반 정보</label>
+                            <input type="text" id="admin-edit-class-info" placeholder="예) 1학년, 사랑반 등">
+                        </div>
+                    </div>
+
+                    <div class="admin-edit-divider" style="margin: 20px 0; border-top: 1px solid var(--border-color);"></div>
+
+                    <div class="form-group">
+                        <label style="color: var(--primary-color); display: flex; align-items: center; gap: 5px;">
+                            <i class="fas fa-shield-alt"></i> 계정 보안
+                        </label>
+                        <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 8px;">
+                            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 12px; line-height: 1.5;">
+                                회원이 비밀번호를 잊어버린 경우, 아래 버튼을 클릭하여 비밀번호 재설정 이메일을 발송할 수 있습니다.
+                            </p>
+                            <button type="button" id="admin-reset-pw-btn" class="btn-reset-pw" style="width: 100%; padding: 10px; background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; color: #334155; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;">
+                                <i class="fas fa-envelope-open-text"></i> 비밀번호 재설정 메일 발송
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel-simple close-admin-user-modal">취소</button>
+                <button type="submit" form="adminUserForm" class="btn-save-admin">저장하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Personal Profile Modal -->
+    <div id="userProfileModal" class="modal">
+        <div class="modal-content admin-edit-content">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <h2>내 프로필 설정</h2>
+                    <span id="profile-admin-badge" class="admin-badge hidden">
+                        <i class="fas fa-crown"></i> <span id="profile-admin-badge-text">관리자</span>
+                    </span>
+                </div>
+                <span class="close-modal close-profile-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="userProfileForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>성명</label>
+                            <input type="text" id="profile-edit-name" required placeholder="성명">
+                        </div>
+                        <div class="form-group">
+                            <label>이메일</label>
+                            <input type="email" id="profile-edit-email" disabled style="background: #f1f5f9; color: #94a3b8;">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>소속학교</label>
+                            <input type="text" id="profile-edit-school" required placeholder="학교명">
+                        </div>
+                        <div class="form-group">
+                            <label>직위</label>
+                            <select id="profile-edit-position" required>
+                                <option value="교장">교장</option>
+                                <option value="교감">교감</option>
+                                <option value="행정실장">행정실장</option>
+                                <option value="교사(초등)">교사(초등)</option>
+                                <option value="교사(유치원)">교사(유치원)</option>
+                                <option value="주무관">주무관</option>
+                                <option value="교무행정원">교무행정원</option>
+                                <option value="돌봄전담사">돌봄전담사</option>
+                                <option value="기타">기타</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row" style="align-items: flex-end; margin-top: 10px;">
+                        <div class="form-group" style="flex: 0 0 auto; margin-right: 15px;">
+                            <label style="display:block; margin-bottom: 6px;">담임 여부</label>
+                            <div class="toggle-wrapper">
+                                <span class="toggle-label-text">담임 아님</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="profile-edit-is-homeroom">
+                                    <span class="slider round"></span>
+                                </label>
+                                <span class="toggle-label-text">담임</span>
+                            </div>
+                        </div>
+                        <div id="profile-edit-class-info-group" class="form-group hidden" style="flex: 1;">
+                            <label>학년/반 정보</label>
+                            <input type="text" id="profile-edit-class-info" placeholder="예) 1학년, 사랑반 등">
+                        </div>
+                    </div>
+
+                    <div class="admin-edit-divider" style="margin: 20px 0; border-top: 1px solid var(--border-color);"></div>
+
+                    <div class="form-group">
+                        <label style="color: var(--primary-color); display: flex; align-items: center; gap: 5px;">
+                            <i class="fas fa-key"></i> 비밀번호 관리
+                        </label>
+                        <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 8px;">
+                            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 12px; line-height: 1.5;">
+                                보안을 위해 비밀번호 재설정 이메일을 발송하여 직접 변경하실 수 있습니다.
+                            </p>
+                            <button type="button" id="profile-reset-pw-btn" class="btn-reset-pw" style="width: 100%; padding: 10px; background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; color: #334155; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;">
+                                <i class="fas fa-envelope-open-text"></i> 비밀번호 재설정 메일 발송
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel-simple close-profile-modal">취소</button>
+                <button type="submit" form="userProfileForm" class="btn-save-admin">변경사항 저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Curriculum Section (학사일정) -->
+    <section id="curriculum-section" class="category-content hidden">
+      <div class="curriculum-container">
+        <!-- Header & Controls -->
+        <div class="curriculum-header-area">
+          <div class="curriculum-title-group">
+            <h2><i class="fas fa-book-open"></i> 학사일정</h2>
+          </div>
+
+          <div class="curriculum-nav-group">
+            <button id="curr-prev-btn" class="nav-arrow-btn"><i class="fas fa-chevron-left"></i></button>
+            <div id="curriculum-current-period" class="period-display">2026년 2월</div>
+            <button id="curr-next-btn" class="nav-arrow-btn"><i class="fas fa-chevron-right"></i></button>
+            <button id="curr-today-btn" class="nav-today-btn">오늘</button>
+            <div class="curr-export-group">
+                <button id="curr-excel-btn" class="export-btn excel" title="엑셀로 내려받기"><i class="fas fa-file-excel"></i> 엑셀</button>
+                <button id="curr-hwp-btn" class="export-btn hwp" title="한글파일로 내려받기"><i class="fas fa-file-word"></i> 한글</button>
+            </div>
+          </div>
+          
+          <div class="curriculum-actions">
+            <button id="curr-add-btn" class="btn-primary-gradient"><i class="fas fa-plus"></i> 일정 추가</button>
+            <div class="view-switcher">
+              <button class="view-btn active" data-curr-view="table" title="표 보기"><i class="fas fa-list"></i></button>
+              <button class="view-btn" data-curr-view="calendar" title="월별 달력"><i class="fas fa-calendar-alt"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Content Views -->
+        <div id="curriculum-content-wrapper" class="content-wrapper">
+          
+          <!-- Member Confirmation Bar -->
+          <div id="curr-member-confirm-bar" class="curr-member-confirm-bar">
+             <!-- JS Generated Table -->
+          </div>
+          
+          <!-- 1. Table View (Default) -->
+          <div id="curr-table-view" class="curr-view active">
+            <div class="curr-table-header">
+              <div class="th th-date">날짜</div>
+              <div class="th th-day">요일</div>
+              <div class="th th-life">특별일</div>
+              <div class="th th-edu">교육활동</div>
+              <div class="th th-staff">교직원 복무</div>
+              <div class="th th-doc">처리할 공문</div>
+            </div>
+            <div id="curr-table-body" class="curr-table-body">
+              <!-- JS Generated Rows -->
+            </div>
+          </div>
+
+          <!-- 2. Calendar View (FullCalendar) -->
+          <div id="curr-calendar-view" class="curr-view">
+            <div id="curr-fullcalendar"></div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Curriculum Event Modal -->
+    <div id="currModal" class="modal">
+      <div class="modal-content modal-lg">
+        <div class="modal-header">
+          <h2 id="currModalTitle">새 일정 등록</h2>
+          <span class="close-modal close-curr-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <!-- Type Selection Step -->
+          <div id="curr-type-selector" class="type-selector-step">
+            <h3>일정 유형을 선택하세요</h3>
+            <div class="type-cards">
+              <div class="type-card" data-type="edu">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <span>교육활동</span>
+              </div>
+              <div class="type-card" data-type="staff">
+                <i class="fas fa-user-clock"></i>
+                <span>교직원 복무</span>
+              </div>
+              <div class="type-card" data-type="doc">
+                <i class="fas fa-file-signature"></i>
+                <span>처리할 공문</span>
+              </div>
+              <div class="type-card" data-type="life">
+                <i class="fas fa-sun"></i>
+                <span>특별일(절기/행사)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Input Form Step -->
+          <form id="currEventForm" class="hidden">
+            <input type="hidden" id="curr-event-id">
+            <input type="hidden" id="curr-event-type">
+            
+            <div class="form-header-bar">
+              <span id="curr-selected-type-badge" class="badge">교육활동</span>
+              <button type="button" id="curr-back-type-btn" class="btn-text">유형 변경</button>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>날짜</label>
+                    <input type="date" id="curr-date" required>
+                </div>
+                <!-- Time is optional or specific to type -->
+                <div class="form-group hidden" id="curr-time-group">
+                    <label>시간</label>
+                    <input type="time" id="curr-time">
+                </div>
+            </div>
+
+            <!-- Dynamic Fields Container -->
+            <div id="curr-dynamic-fields"></div>
+
+            <div class="form-group" id="curr-common-title-group">
+                <label id="curr-title-label">내용</label>
+                <input type="text" id="curr-title" required placeholder="내용을 입력하세요">
+            </div>
+
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="curr-delete-btn" class="btn-delete hidden"><i class="fas fa-trash"></i> 삭제</button>
+          <div class="right-btns">
+            <button type="button" class="curr-btn-secondary close-curr-modal">취소</button>
+            <button type="submit" form="currEventForm" class="curr-btn-primary">저장</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar Event Modal -->
+    <div id="eventModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="modalTitle">일정 등록</h2>
+          <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <form id="eventForm">
+            <input type="hidden" id="event-id">
+            <div class="form-group">
+              <label for="event-title">일정명</label>
+              <input type="text" id="event-title" placeholder="일정 이름을 입력하세요" required>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="event-start">시작일</label>
+                <input type="date" id="event-start" required>
+              </div>
+              <div class="form-group">
+                <label for="event-end">종료일</label>
+                <input type="date" id="event-end">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="event-description">상세 내용</label>
+              <textarea id="event-description" placeholder="상세 내용을 입력하세요 (선택 사항)" rows="3"></textarea>
+            </div>
+            <div class="form-group checkbox-group">
+              <label class="checkbox-container">
+                <input type="checkbox" id="event-is-holiday">
+                <span class="checkmark"></span>
+                공휴일 또는 기념일 (날짜 빨간색 표시)
+              </label>
+            </div>
+            <div class="form-group">
+              <label for="event-color">색상 표시</label>
+              <div class="color-picker" id="event-color-picker">
+                <div class="color-option selected" data-color="#4a90e2" style="background-color: #4a90e2;"></div>
+                <div class="color-option" data-color="#10b981" style="background-color: #10b981;"></div>
+                <div class="color-option" data-color="#f59e0b" style="background-color: #f59e0b;"></div>
+                <div class="color-option" data-color="#ef4444" style="background-color: #ef4444;"></div>
+                <div class="color-option" data-color="#8b5cf6" style="background-color: #8b5cf6;"></div>
+                <div class="color-option" data-color="#ec4899" style="background-color: #ec4899;"></div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="deleteEventBtn" class="btn-delete hidden">삭제</button>
+          <div class="footer-right">
+            <button type="button" class="btn-cancel close-modal">취소</button>
+            <button type="submit" form="eventForm" class="btn-save">저장</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    </main>
+
+    <footer>
+      <p>&copy; 2026 가로내 온라인 연구실. All rights reserved.</p>
+    </footer>
+
+    <!-- Member Settings Modal -->
+    </div> <!-- End app-container -->
+    <div id="memberSettingsModal" class="modal">
+        <div class="modal-content member-settings-content">
+            <span class="close-modal" onclick="closeMemberSettingsModal()">&times;</span>
+            <div class="modal-header">
+                <h2>구성원 목록 설정</h2>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">확인란에 표시할 구성원 이름을 콤마(,)로 구분하여 입력하세요.</p>
+                <textarea id="member-list-input" class="member-list-textarea" placeholder="예: 교장, 교감, 행정실장..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="curr-btn save-btn" onclick="saveMemberSettings()">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Modal -->
+    <div id="accountModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="accountModalTitle">계정 정보 등록</h2>
+          <span class="close-modal close-account-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <form id="accountForm">
+            <input type="hidden" id="account-id">
+            <div class="form-group">
+              <label for="account-service">서비스명</label>
+              <input type="text" id="account-service" required placeholder="예: 구글 워크스페이스">
+            </div>
+            <div class="form-group">
+              <label for="account-url">서비스 URL (선택)</label>
+              <input type="url" id="account-url" placeholder="https://example.com">
+            </div>
+            <div class="form-group">
+              <label for="account-username">아이디</label>
+              <input type="text" id="account-username" required placeholder="아이디를 입력하세요">
+            </div>
+            <div class="form-group">
+              <label for="account-password">비밀번호</label>
+              <input type="text" id="account-password" required placeholder="비밀번호를 입력하세요">
+            </div>
+            <div class="form-group">
+              <label for="account-note">비고</label>
+              <textarea id="account-note" rows="2" placeholder="참고사항을 입력하세요"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel close-account-modal">취소</button>
+          <button type="submit" form="accountForm" class="btn-save">저장</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bus Request Modal -->
+    <div id="busModal" class="modal">
+      <div class="modal-content" style="max-width: 520px;">
+        <div class="modal-header" style="padding: 1.2rem 1.5rem;">
+          <h2 id="busModalTitle" style="font-size: 1.25rem;">배차 신청</h2>
+          <span class="close-modal close-bus-modal">&times;</span>
+        </div>
+        <div class="modal-body" style="padding: 1.5rem;">
+          <form id="busForm" class="grid-form">
+            <input type="hidden" id="bus-id">
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="bus-date">사용 날짜</label>
+                <input type="date" id="bus-date" required>
+              </div>
+              <div class="form-group">
+                <label>시간</label>
+                <div class="custom-time-picker-wrapper">
+                  <div class="time-select-group">
+                    <select id="bus-start-hour" class="minimal-select"></select>
+                    <span>:</span>
+                    <select id="bus-start-min" class="minimal-select"></select>
+                  </div>
+                  <span class="time-sep">~</span>
+                  <div class="time-select-group">
+                    <select id="bus-end-hour" class="minimal-select"></select>
+                    <span>:</span>
+                    <select id="bus-end-min" class="minimal-select"></select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="bus-region">관내/관외</label>
+                <select id="bus-region" required>
+                  <option value="관내">관내</option>
+                  <option value="관외">관외</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="bus-type">차형(인승)</label>
+                <select id="bus-type" required>
+                  <option value="소형(15인 이하)">소형(15인 이하)</option>
+                  <option value="중형(16~35인)">중형(16~35인)</option>
+                  <option value="대형(36인 이상)">대형(36인 이상)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="bus-count">신청 대수</label>
+                <input type="number" id="bus-count" value="1" min="1" required>
+              </div>
+              <div class="form-group">
+                <label for="bus-use-school">본교차량 사용</label>
+                <select id="bus-use-school">
+                  <option value="Y">예 (Y)</option>
+                  <option value="N">아니오 (N)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="bus-destination">목적지</label>
+              <input type="text" id="bus-destination" placeholder="목적지명을 입력하세요" required>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="bus-teacher-name">인솔교사</label>
+                <input type="text" id="bus-teacher-name" placeholder="인솔교사 성함" required>
+              </div>
+              <div class="form-group">
+                <label for="bus-teacher-count">교사 인원</label>
+                <input type="number" id="bus-teacher-count" value="0" min="0">
+              </div>
+              <div class="form-group">
+                <label for="bus-student-count">학생 인원</label>
+                <input type="number" id="bus-student-count" value="0" min="0">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="bus-purpose">신청 목적</label>
+              <input type="text" id="bus-purpose" placeholder="체험학습, 대회 참가 등">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer" style="padding: 1rem 1.5rem;">
+          <button type="button" class="btn-cancel close-bus-modal">취소</button>
+          <button type="submit" form="busForm" class="btn-save">신청하기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= Digital Clock (New Location) ================= -->
+    <div class="clock-widget-container">
+        <div class="side-site-title">가로내 온라인 연구실</div>
+        <div id="digital-clock" class="modern-clock">
+            <!-- JS에서 동적으로 생성됨 -->
+        </div>
+    </div>
+
+    <!-- ================= Left Sidebar Widgets ================= -->
+    <div id="left-sidebar" class="sidebar-container">
+        
+        <!-- Today Schedule Widget -->
+        <div id="school-today-widget" class="today-widget sidebar-widget">
+            <div class="widget-header clickable" id="today-widget-header">
+                <div class="widget-date">
+                    <span id="today-month-day">--월 --일</span>
+                    <span id="today-weekday" class="weekday">요일</span>
+                </div>
+                <div class="header-actions">
+                    <button id="today-toggle-btn" class="widget-action-btn"><i class="fas fa-chevron-up"></i></button>
+                    <button id="widget-add-btn" class="widget-add-btn" title="일정 추가">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="widget-content">
+                <ul id="today-event-list" class="today-event-list"></ul>
+            </div>
+        </div>
+
+        <!-- Notice Widget -->
+        <div id="notice-widget" class="sidebar-widget notice-widget">
+            <div class="widget-header clickable" id="notice-widget-header">
+                <div class="widget-title"><i class="fas fa-bullhorn"></i> 알립니다</div>
+                <div class="header-actions">
+                    <button id="notice-toggle-btn" class="widget-action-btn"><i class="fas fa-chevron-up"></i></button>
+                    <button id="notice-add-btn" class="widget-add-btn" title="메모 작성"><i class="fas fa-plus"></i></button>
+                </div>
+            </div>
+            <div class="widget-content" id="notice-widget-content">
+                <!-- Items rendered here -->
+                <div class="board-loading" style="font-size: 0.8rem; text-align: center; color: #94a3b8;">불러오는 중...</div>
+            </div>
+        </div>
+
+    </div>
+
+
+
+
+
+
+    
+    <!-- Firebase SDK & Config -->
+    <!-- Firebase SDK & Config -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+      import { getFirestore, collection, getDocs, getDoc, setDoc, doc, deleteDoc, query, onSnapshot, updateDoc, orderBy, where } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+      import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-storage.js";
+      import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyCQmDCL-PuN2A9AgOzIpObCeNtvIFDJmhU",
+        authDomain: "studio-8412089884-f8185.firebaseapp.com",
+        projectId: "studio-8412089884-f8185",
+        storageBucket: "studio-8412089884-f8185.firebasestorage.app",
+        messagingSenderId: "928283224778",
+        appId: "1:928283224778:web:01cb08827402140aace233"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      window.db = getFirestore(app);
+      window.storage = getStorage(app);
+      window.auth = getAuth(app);
+      
+      // Export utils for legacy scripts
+      window.firestoreUtils = { collection, getDocs, getDoc, setDoc, doc, deleteDoc, query, onSnapshot, updateDoc, orderBy, where };
+      window.storageUtils = { ref, uploadBytes, getDownloadURL, deleteObject };
+      
+      // Notify script.js that Firebase is ready
+      window.dispatchEvent(new Event('firebase-ready'));
+
+      // ================= AUTH LOGIC =================
+      const auth = window.auth;
+      const db = window.db;
+      const googleProvider = new GoogleAuthProvider();
+
+      const loginContainer = document.getElementById('login-container');
+      const appContainer = document.getElementById('app-container');
+      const authAlert = document.getElementById('auth-alert');
+      const adminNavBtn = document.getElementById('nav-admin-btn');
+      let autoLogoutMessage = "";
+
+      // UI Element References
+      const loginTabs = document.querySelectorAll('.login-tab');
+      const loginForm = document.getElementById('login-form');
+      const registerForm = document.getElementById('register-form');
+      const googleJoinForm = document.getElementById('google-join-form');
+
+      // Helper: Switch Auth Mode
+      function switchAuthMode(mode) {
+          console.log("Switching mode to:", mode);
+          
+          if(loginContainer) loginContainer.style.display = 'flex';
+          if(appContainer) appContainer.style.display = 'none';
+
+          // Hide all forms and alerts
+          [loginForm, registerForm, googleJoinForm].forEach(f => {
+              if(f) {
+                  f.classList.add('hidden');
+                  f.classList.remove('active');
+                  const alert = f.querySelector('.auth-alert');
+                  if(alert) alert.classList.add('hidden');
+              }
+          });
+          
+          // Reset Tabs
+          loginTabs.forEach(t => t.classList.remove('active'));
+
+          // Activate specific form
+          let activeForm = null;
+          if (mode === 'login') {
+              activeForm = loginForm;
+              if(loginTabs[0]) loginTabs[0].classList.add('active');
+          } else if (mode === 'register') {
+              activeForm = registerForm;
+              if(loginTabs[1]) loginTabs[1].classList.add('active');
+          } else if (mode === 'google-join') {
+              activeForm = googleJoinForm;
+          }
+          
+          if(activeForm) {
+              activeForm.classList.remove('hidden');
+              activeForm.classList.add('active');
+          }
+      }
+
+      // Tab Switching Logic
+      loginTabs.forEach(tab => {
+          tab.addEventListener('click', () => {
+              const mode = tab.dataset.tab;
+              switchAuthMode(mode);
+          });
+      });
+
+      // Homeroom Toggle Logic
+      const setupToggle = (checkId, groupId) => {
+          const checkbox = document.getElementById(checkId);
+          const group = document.getElementById(groupId);
+          if(checkbox && group) {
+              checkbox.addEventListener('change', (e) => {
+                  if(e.target.checked) group.classList.remove('hidden');
+                  else group.classList.add('hidden');
+              });
+          }
+      };
+      setupToggle('reg-is-homeroom', 'reg-class-info-group');
+      setupToggle('g-reg-is-homeroom', 'g-reg-class-info-group');
+
+      // Alert Helpers (Target Active Form)
+      function showError(msg) {
+          const activeForm = document.querySelector('.auth-form.active');
+          if(!activeForm) return;
+          const alertBox = activeForm.querySelector('.auth-alert');
+          if(alertBox) {
+              alertBox.textContent = msg;
+              alertBox.classList.remove('hidden');
+              alertBox.classList.remove('success');
+          } else {
+              // Fallback if UI fails
+              alert(msg);
+          }
+      }
+      function showSuccess(msg) {
+          const activeForm = document.querySelector('.auth-form.active');
+          if(!activeForm) return;
+          const alertBox = activeForm.querySelector('.auth-alert');
+          if(alertBox) {
+              alertBox.textContent = msg;
+              alertBox.classList.remove('hidden');
+              alertBox.classList.add('success');
+          }
+      }
+      function updateGreeting(userData) {
+          const greetingEl = document.getElementById('user-greeting');
+          if(!greetingEl) return;
+          if(!userData) {
+              greetingEl.textContent = "";
+              return;
+          }
+          let title = "";
+          const pos = userData.position;
+          const name = userData.name;
+          
+          if(pos === "교장") title = name ? `${name} 교장선생님` : "교장선생님";
+          else if(pos === "교감") title = name ? `${name} 교감선생님` : "교감선생님";
+          else if(pos === "행정실장") title = name ? `${name} 행정실장님` : "행정실장님";
+          else if(pos === "교사(초등)" || pos === "교사(유치원)") title = name ? `${name} 선생님` : "선생님";
+          else if(pos === "주무관") title = name ? `${name} 주무관님` : "주무관님";
+          else if(pos === "교무행정원") title = name ? `${name} 교무행정원님` : "교무행정원님";
+          else if(pos === "돌봄전담사") title = name ? `${name} 돌봄전담사님` : "돌봄전담사님";
+          else title = name ? `${name}님` : "사용자님";
+          
+          greetingEl.textContent = `${title}, 반갑습니다.`;
+      }
+
+      // Check User Status
+      async function checkUserStatus(user) {
+          console.log("Checking status for:", user.email);
+          try {
+              const userRef = doc(db, "users", user.uid);
+              const userSnap = await getDoc(userRef);
+
+              if (!userSnap.exists()) {
+                  // New Google User -> Go to Join Form
+                  console.log("New Google user, redirecting to join form");
+                  updateGreeting(null);
+                  switchAuthMode('google-join');
+                  
+                  const gName = document.getElementById('g-reg-name');
+                  if(gName && user.displayName) gName.value = user.displayName;
+                  return;
+              }
+
+              const userData = userSnap.data();
+              if (userData.approved) {
+                  // Approved -> Enter App
+                  console.log("User approved. Entering app.");
+                  updateGreeting(userData);
+                  if(loginContainer) loginContainer.style.setProperty('display', 'none', 'important');
+                  if(appContainer) {
+                      appContainer.style.display = 'block';
+                      appContainer.classList.remove('hidden');
+                  }
+                  
+                  const isAdmin = userData.role === 'admin';
+                  const isSubAdmin = userData.role === 'sub-admin';
+
+                  // Admin UI Toggle
+                  const adminFeatures = document.querySelectorAll('.admin-feature');
+                  
+                  if (isAdmin || isSubAdmin) {
+                      if (adminNavBtn) adminNavBtn.classList.remove('hidden');
+                      adminFeatures.forEach(f => {
+                          f.classList.remove('hidden');
+                          f.style.display = '';
+                      });
+                      
+                      const headerCrown = document.getElementById('header-admin-crown');
+                      if (headerCrown) {
+                          headerCrown.classList.remove('hidden');
+                          if (isSubAdmin) headerCrown.classList.add('silver');
+                          else headerCrown.classList.remove('silver');
+                      }
+                      loadAdminData();
+                  } else {
+                      if (adminNavBtn) adminNavBtn.classList.add('hidden');
+                      adminFeatures.forEach(f => {
+                          f.classList.add('hidden');
+                          f.style.display = 'none';
+                      });
+                      
+                      const headerCrown = document.getElementById('header-admin-crown');
+                      if (headerCrown) headerCrown.classList.add('hidden');
+                  }
+                  
+                  // Notify script.js about role
+                  window.currentUserRole = userData.role || 'user';
+                  window.currentUserName = userData.name || '';
+                  window.dispatchEvent(new CustomEvent('user-role-updated', { detail: { role: userData.role || 'user' } }));
+
+                  window.dispatchEvent(new Event('resize'));
+              } else {
+                  // Pending -> Show Error & Logout
+                  console.log("User pending.");
+                  updateGreeting(null);
+                  autoLogoutMessage = "현재 관리자 승인 대기 중입니다. 관리자 승인 후 이용 가능합니다.";
+                  await signOut(auth);
+              }
+          } catch (e) {
+              console.error("Check status error:", e);
+              updateGreeting(null);
+              showError("로그인 확인 중 오류가 발생했습니다.");
+              switchAuthMode('login');
+          }
+      }
+
+      // Auth State Listener
+      onAuthStateChanged(auth, (user) => {
+          if (user) {
+              checkUserStatus(user);
+          } else {
+              updateGreeting(null);
+              switchAuthMode('login');
+              
+              // Reset admin UI on logout
+              if (adminNavBtn) adminNavBtn.classList.add('hidden');
+              document.querySelectorAll('.admin-feature').forEach(f => {
+                  f.classList.add('hidden');
+                  f.style.display = 'none';
+              });
+              const headerCrown = document.getElementById('header-admin-crown');
+              if (headerCrown) headerCrown.classList.add('hidden');
+              
+              window.currentUserRole = 'user';
+              window.dispatchEvent(new CustomEvent('user-role-updated', { detail: { role: 'user' } }));
+
+              if(autoLogoutMessage) {
+                  showError(autoLogoutMessage);
+                  autoLogoutMessage = "";
+              }
+          }
+      });
+
+      // --- FORM SUBMISSION HANDLERS ---
+
+      // Login
+      if(loginForm) {
+          loginForm.addEventListener('submit', async (e) => {
+              e.preventDefault();
+              const email = document.getElementById('login-email').value;
+              const pw = document.getElementById('login-password').value;
+              try {
+                  await signInWithEmailAndPassword(auth, email, pw);
+              } catch (err) {
+                  let msg = "로그인 실패";
+                  if(err.code === 'auth/invalid-credential') msg = "정보가 올바르지 않습니다.";
+                  showError(msg);
+              }
+          });
+      }
+
+      // Register Logic (Clean Global Handler)
+      window.handleRegister = async () => {
+          console.log("Register initiated");
+          
+          // Elements
+          const getVal = (id) => { const el = document.getElementById(id); return el ? el.value.trim() : ""; };
+          
+          const email = getVal('reg-email');
+          const pw = document.getElementById('reg-password').value; // Don't trim password? typically no
+          const name = getVal('reg-name');
+          const school = getVal('reg-school');
+          const position = getVal('reg-position');
+          const isHomeroom = document.getElementById('reg-is-homeroom').checked;
+          const classInfo = getVal('reg-class-info');
+
+          // Validation
+          if(!email) return showError("이메일을 입력해주세요.");
+          if(!pw) return showError("비밀번호를 입력해주세요.");
+          if(!name) return showError("성명을 입력해주세요.");
+          if(!school) return showError("소속학교를 입력해주세요.");
+          if(!position) return showError("직위를 선택해주세요.");
+          if (pw.length < 6) return showError("비밀번호는 6자 이상이어야 합니다.");
+
+          try {
+              const cred = await createUserWithEmailAndPassword(auth, email, pw);
+              await updateProfile(cred.user, { displayName: name });
+              
+              await setDoc(doc(db, "users", cred.user.uid), {
+                  email, name, school, position,
+                  isHomeroom, classInfo: isHomeroom ? classInfo : "",
+                  role: "member", approved: false, createdAt: new Date().toISOString()
+              });
+
+              showSuccess("가입 신청이 완료되었습니다. 관리자 승인을 기다려주세요.");
+              await signOut(auth);
+              setTimeout(() => switchAuthMode('login'), 1500);
+          } catch (err) {
+              console.error("Register Error:", err);
+              if (err.code === 'auth/email-already-in-use') showError("이미 가입된 이메일입니다.");
+              else showError("가입 실패: " + err.message);
+          }
+      };
+
+      // Google Join
+      if(googleJoinForm) {
+          googleJoinForm.addEventListener('submit', async (e) => {
+              e.preventDefault();
+              const user = auth.currentUser;
+              if(!user) return showError("인증 정보 없음");
+
+              const name = document.getElementById('g-reg-name').value;
+              const school = document.getElementById('g-reg-school').value;
+              const position = document.getElementById('g-reg-position').value;
+              const isHomeroom = document.getElementById('g-reg-is-homeroom').checked;
+              const classInfo = document.getElementById('g-reg-class-info').value;
+
+              try {
+                  await updateProfile(user, { displayName: name });
+                  await setDoc(doc(db, "users", user.uid), {
+                      email: user.email, name: name, school: school, position: position,
+                      isHomeroom: isHomeroom, classInfo: isHomeroom ? classInfo : "",
+                      role: "member", approved: false, createdAt: new Date().toISOString()
+                  });
+
+                  showSuccess("프로필 저장 완료. 승인 대기.");
+                  await signOut(auth);
+                  setTimeout(() => switchAuthMode('login'), 2000);
+              } catch (err) {
+                  showError("저장 실패: " + err.message);
+              }
+          });
+      }
+
+      // Buttons
+      const gCancelBtn = document.getElementById('g-cancel-btn');
+      if(gCancelBtn) {
+          gCancelBtn.addEventListener('click', async () => {
+              await signOut(auth);
+              switchAuthMode('login');
+          });
+      }
+
+      const gLoginBtn = document.getElementById('google-login-btn');
+      if(gLoginBtn) {
+          gLoginBtn.addEventListener('click', async () => {
+              try {
+                  await signInWithPopup(auth, googleProvider);
+              } catch (err) {
+                  showError("Google 로그인 실패");
+              }
+          });
+      }
+
+      const logoutBtn = document.getElementById('logout-btn');
+      if(logoutBtn) {
+          logoutBtn.addEventListener('click', async () => {
+              if(!confirm("로그아웃 하시겠습니까?")) return;
+              try {
+                  await signOut(auth);
+                  location.reload();
+              } catch(e) { console.error(e); }
+          });
+      }
+
+      // ================= ADMIN LOGIC =================
+      let adminUsers = [];
+      let currentAdminFilter = 'all';
+
+      window.loadAdminData = function() {
+          const tableBody = document.getElementById('admin-user-list');
+          if (!tableBody) return;
+
+          const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
+          
+          onSnapshot(q, (snapshot) => {
+              adminUsers = [];
+              let pendingCount = 0;
+              
+              snapshot.forEach(docSnap => {
+                  const u = docSnap.data();
+                  u.uid = docSnap.id;
+                  if (!u.deleted) {
+                      adminUsers.push(u);
+                      if (!u.approved) pendingCount++;
+                  }
+              });
+
+              // Update Stats Dashboard (New)
+              if(window.updateAdminDashboard) window.updateAdminDashboard(adminUsers);
+
+              // Update Legacy Stats
+              const pendingEl = document.getElementById('admin-pending-count');
+              const totalEl = document.getElementById('admin-total-count');
+              if(pendingEl) pendingEl.textContent = pendingCount;
+              if(totalEl) totalEl.textContent = adminUsers.length;
+
+              // Initial Render
+              renderAdminTable();
+          });
+      };
+
+      let currentAdminSort = { column: 'createdAt', direction: 'desc' };
+
+      window.sortAdminList = function(column) {
+          if (currentAdminSort.column === column) {
+              currentAdminSort.direction = currentAdminSort.direction === 'asc' ? 'desc' : 'asc';
+          } else {
+              currentAdminSort.column = column;
+              currentAdminSort.direction = 'asc';
+          }
+          renderAdminTable();
+      };
+
+      const getSortIcon = (col) => {
+          if (currentAdminSort.column !== col) return '<i class="fas fa-sort" style="opacity:0.3; font-size: 0.8em; margin-left: 5px;"></i>';
+          return currentAdminSort.direction === 'asc' 
+              ? '<i class="fas fa-sort-up" style="color:var(--primary-color); margin-left: 5px;"></i>' 
+              : '<i class="fas fa-sort-down" style="color:var(--primary-color); margin-left: 5px;"></i>';
+      };
+
+      function updateSegmentButtons() {
+          const btnAll = document.getElementById('seg-all');
+          const btnPending = document.getElementById('seg-pending');
+          
+          if (!btnAll || !btnPending) return;
+
+          if (currentAdminFilter === 'pending') {
+              btnAll.classList.remove('active');
+              btnPending.classList.add('active');
+          } else {
+              btnAll.classList.add('active');
+              btnPending.classList.remove('active');
+          }
+      }
+
+      window.filterAdminList = function(type) {
+          currentAdminFilter = type;
+          updateSegmentButtons();
+          renderAdminTable();
+      };
+
+      window.renderAdminTable = function() {
+          updateSegmentButtons(); // Ensure buttons sync
+          const tableBody = document.getElementById('admin-user-list');
+          if (!tableBody) return;
+          
+          // ... rest of function
+
+          // Update Sort Icons in Headers
+          const headers = document.querySelectorAll('.admin-table th[data-sort]');
+          headers.forEach(th => {
+              const col = th.dataset.sort;
+              let label = th.getAttribute('data-label'); 
+              if(!label) { label = th.innerText.replace(/▼|▲/g, '').trim(); th.setAttribute('data-label', label); }
+              
+              const iconHtml = getSortIcon(col);
+              const iconClass = currentAdminSort.column === col ? (currentAdminSort.direction === 'asc' ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort';
+              const iconColor = currentAdminSort.column === col ? 'var(--primary-color)' : '#cbd5e1';
+              
+              th.innerHTML = `${label} <i class="fas ${iconClass}" style="color:${iconColor}; margin-left:6px;"></i>`;
+          });
+
+          let filtered = [...adminUsers]; // Copy for sorting
+          
+          // Search Filter
+          const searchInput = document.getElementById('admin-search-input');
+          if (searchInput && searchInput.value) {
+              const term = searchInput.value.toLowerCase();
+              filtered = filtered.filter(u => 
+                  (u.name && u.name.toLowerCase().includes(term)) || 
+                  (u.email && u.email.toLowerCase().includes(term))
+              );
+          }
+
+          // Toggle Filter
+          if (currentAdminFilter === 'pending') {
+              filtered = filtered.filter(u => !u.approved);
+          }
+
+          // Sorting Logic
+          filtered.sort((a, b) => {
+              let valA, valB;
+
+              // Special handling for Role: Admin(1) < Sub-Admin(2) < User(3)
+              if (currentAdminSort.column === 'role') {
+                  const getRoleRank = (r) => {
+                      if (r === 'admin') return 1;
+                      if (r === 'sub-admin') return 2;
+                      return 3; 
+                  };
+                  valA = getRoleRank(a.role);
+                  valB = getRoleRank(b.role);
+              } 
+              // Special handling for Homeroom
+              else if (currentAdminSort.column === 'classInfo') {
+                  valA = a.isHomeroom ? (a.classInfo || '') : 'aaaa'; // Sort non-homeroom to bottom/top
+                  valB = b.isHomeroom ? (b.classInfo || '') : 'aaaa';
+              } 
+              // Default handling
+              else {
+                  valA = a[currentAdminSort.column] || '';
+                  valB = b[currentAdminSort.column] || '';
+              }
+              
+              if (typeof valA === 'string') valA = valA.toLowerCase();
+              if (typeof valB === 'string') valB = valB.toLowerCase();
+
+              if (valA < valB) return currentAdminSort.direction === 'asc' ? -1 : 1;
+              if (valA > valB) return currentAdminSort.direction === 'asc' ? 1 : -1;
+              return 0;
+          });
+
+          let html = '';
+          if (filtered.length === 0) {
+              html = `<tr><td colspan="9" style="text-align:center; padding: 2.5rem; color: var(--text-muted);">조건에 맞는 회원이 없습니다.</td></tr>`;
+          } else {
+              filtered.forEach(u => {
+                  const statusClass = u.approved ? 'badge-status-approved' : 'badge-status-pending';
+                  const statusText = u.approved ? '승인됨' : '대기중';
+                  
+                  // Homeroom Display
+                  let homeroomDisplay = '';
+                  if (u.isHomeroom) {
+                      homeroomDisplay = `<span class="info-text-bold">담임: ${u.classInfo || '?'}</span>`;
+                  } else {
+                      homeroomDisplay = `<span class="info-text-muted">비담임</span>`;
+                  }
+
+                  // Role Badge
+                  const role = u.role || 'user';
+                  let roleText = '사용자';
+                  let roleClass = 'badge-role-user';
+                  if (role === 'admin') { roleText = '최고관리자'; roleClass = 'badge-role-admin'; }
+                  else if (role === 'sub-admin') { roleText = '부관리자'; roleClass = 'badge-role-sub'; }
+
+                  // Actions
+                  let actions = `<div class="action-btn-group">`;
+                  if (!u.approved) {
+                      actions += `<button class="btn-icon btn-approve-sm" onclick="window.approveUser('${u.uid}', '${u.name}')" title="승인"><i class="fas fa-check"></i></button>`;
+                  }
+                  actions += `<button class="btn-icon btn-edit-sm" onclick="window.openUserEditModal('${u.uid}')" title="수정"><i class="fas fa-pen"></i></button>`;
+                  actions += `<button class="btn-icon btn-delete-sm" onclick="window.rejectUser('${u.uid}', '${u.name}')" title="삭제"><i class="fas fa-trash"></i></button>`;
+                  actions += `</div>`;
+
+                  // Abbreviate School Name
+                  let schoolName = u.school || '';
+                  schoolName = schoolName.replace('초등학교', '초')
+                                         .replace('중학교', '중')
+                                         .replace('고등학교', '고');
+
+                  // Format Date
+                  const date = u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '-';
+
+                           // Render Row (New Order: Role, School, Position, Name, Class Info, Email, Date, Status, Action)
+                  html += `
+                    <tr>
+                        <td><span class="${roleClass}">${roleText}</span></td>
+                        <td class="admin-user-school">${schoolName}</td>
+                        <td><span class="badge-position">${u.position || '-'}</span></td>
+                        <td class="admin-user-name">${u.name}</td>
+                        <td>${homeroomDisplay}</td>
+                        <td class="admin-user-email">${u.email}</td>
+                        <td class="admin-user-date">${new Date(u.createdAt).toLocaleDateString()}</td>
+                        <td><span class="${statusClass}">${statusText}</span></td>
+                        <td>${actions}</td>
+                    </tr>
+                  `;
+              });
+          }
+          tableBody.innerHTML = html;
+      };
+
+      window.filterAdminList = function(type) {
+          currentAdminFilter = type;
+          
+          // Update visual state of cards
+          document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('selected'));
+          if (type === 'pending') document.querySelector('.stat-card.pending').classList.add('selected');
+          else document.querySelector('.stat-card.total').classList.add('selected');
+
+          renderAdminTable();
+      };
+
+      // User Actions
+      // User Actions
+      window.approveUser = async (uid, name) => {
+          if (!confirm("이 회원을 승인하시겠습니까?")) return;
+          try {
+              await updateDoc(doc(db, "users", uid), { approved: true });
+              // Log Action
+              if(window.logAdminAction) window.logAdminAction("회원 승인", `${name || uid} 승인 처리`);
+          } catch (e) { alert("오류: " + e.message); }
+      };
+
+      window.rejectUser = async (uid, name) => {
+          // Use Soft Delete
+          if(window.softDeleteUser) {
+              window.softDeleteUser(uid, name || uid);
+          } else {
+              if (!confirm("정말 삭제하시겠습니까?")) return;
+              try {
+                  await deleteDoc(doc(db, "users", uid));
+              } catch (e) { alert("오류: " + e.message); }
+          }
+      };
+
+      // Edit Modal Logic
+      const adminUserModal = document.getElementById('adminUserModal');
+      const adminUserForm = document.getElementById('adminUserForm');
+
+      window.openUserEditModal = function(uid) {
+          const user = adminUsers.find(u => u.uid === uid);
+          if (!user) return;
+
+          document.getElementById('admin-edit-uid').value = uid;
+          document.getElementById('admin-edit-name').value = user.name;
+          document.getElementById('admin-edit-email').value = user.email;
+          document.getElementById('admin-edit-school').value = user.school;
+          document.getElementById('admin-edit-position').value = user.position;
+          
+          const isHomeroomCb = document.getElementById('admin-edit-is-homeroom');
+          isHomeroomCb.checked = user.isHomeroom;
+          
+          const classInfoGroup = document.getElementById('admin-edit-class-info-group');
+          const classInfoInput = document.getElementById('admin-edit-class-info');
+          const roleSelect = document.getElementById('admin-edit-role');
+          const roleRow = document.getElementById('admin-role-edit-row');
+
+          // Handle Role Population
+          if (roleSelect) roleSelect.value = user.role || 'user';
+
+          // Restriction: Sub-admin cannot manage roles (designate/remove admins)
+          const currentUser = auth.currentUser;
+          const currentAdminData = adminUsers.find(u => u.uid === currentUser?.uid);
+          
+          if (currentAdminData && currentAdminData.role === 'sub-admin') {
+              if (roleRow) roleRow.classList.add('hidden'); // Hide role setting for sub-admins
+          } else {
+              if (roleRow) roleRow.classList.remove('hidden');
+          }
+
+          if (user.isHomeroom) {
+              classInfoGroup.classList.remove('hidden');
+              classInfoInput.value = user.classInfo || '';
+          } else {
+              classInfoGroup.classList.add('hidden');
+              classInfoInput.value = '';
+          }
+
+          // Event Listener for Toggle
+          isHomeroomCb.onchange = (e) => {
+             if(e.target.checked) classInfoGroup.classList.remove('hidden');
+             else classInfoGroup.classList.add('hidden');
+          };
+
+          adminUserModal.classList.add('active');
+      };
+
+      // Password Reset Logic
+      const resetPwBtn = document.getElementById('admin-reset-pw-btn');
+      if (resetPwBtn) {
+          resetPwBtn.onclick = async () => {
+              const email = document.getElementById('admin-edit-email').value;
+              if (!email) return alert("해당 사용자의 이메일 주소를 확인할 수 없습니다.");
+              
+              if (!confirm(`${email} 주소로 비밀번호 재설정 메일을 발송하시겠습니까?`)) return;
+              
+              const originalText = resetPwBtn.innerHTML;
+              resetPwBtn.disabled = true;
+              resetPwBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 발송 중...';
+              
+              try {
+                  await sendPasswordResetEmail(auth, email);
+                  alert("비밀번호 재설정 이메일이 성공적으로 발송되었습니다.");
+              } catch (err) {
+                  console.error(err);
+                  alert("발송 실패: " + err.message);
+              } finally {
+                  resetPwBtn.disabled = false;
+                  resetPwBtn.innerHTML = originalText;
+              }
+          };
+      }
+
+      document.querySelectorAll('.close-admin-user-modal').forEach(btn => {
+          btn.onclick = () => adminUserModal.classList.remove('active');
+      });
+
+      // Personal Profile Logic
+      const profileBtn = document.getElementById('profile-btn');
+      const userProfileModal = document.getElementById('userProfileModal');
+      const userProfileForm = document.getElementById('userProfileForm');
+
+      if (profileBtn) {
+          profileBtn.onclick = async () => {
+              const user = auth.currentUser;
+              if (!user) return alert("로그인 정보가 없습니다.");
+
+              try {
+                  const snap = await getDoc(doc(db, "users", user.uid));
+                  if (!snap.exists()) return alert("사용자 정보를 찾을 수 없습니다.");
+                  
+                  const userData = snap.data();
+                  
+                  // Show admin badge if role is admin or sub-admin
+                  const adminBadge = document.getElementById('profile-admin-badge');
+                  const adminBadgeText = document.getElementById('profile-admin-badge-text');
+                  if (adminBadge) {
+                      if (userData.role === 'admin') {
+                          adminBadge.classList.remove('hidden');
+                          adminBadge.classList.remove('silver');
+                          if (adminBadgeText) adminBadgeText.textContent = "최고관리자";
+                      } else if (userData.role === 'sub-admin') {
+                          adminBadge.classList.remove('hidden');
+                          adminBadge.classList.add('silver');
+                          if (adminBadgeText) adminBadgeText.textContent = "부관리자";
+                      } else {
+                          adminBadge.classList.add('hidden');
+                      }
+                  }
+                  
+                  document.getElementById('profile-edit-name').value = userData.name || "";
+                  document.getElementById('profile-edit-email').value = user.email || "";
+                  document.getElementById('profile-edit-school').value = userData.school || "";
+                  document.getElementById('profile-edit-position').value = userData.position || "";
+                  
+                  const isHomeroomCb = document.getElementById('profile-edit-is-homeroom');
+                  isHomeroomCb.checked = userData.isHomeroom || false;
+                  
+                  const classGroup = document.getElementById('profile-edit-class-info-group');
+                  const classInput = document.getElementById('profile-edit-class-info');
+                  
+                  if (userData.isHomeroom) {
+                      classGroup.classList.remove('hidden');
+                      classInput.value = userData.classInfo || "";
+                  } else {
+                      classGroup.classList.add('hidden');
+                      classInput.value = "";
+                  }
+                  
+                  isHomeroomCb.onchange = (e) => {
+                      if(e.target.checked) classGroup.classList.remove('hidden');
+                      else classGroup.classList.add('hidden');
+                  };
+
+                  userProfileModal.classList.add('active');
+              } catch (err) {
+                  console.error(err);
+                  alert("프로필 로드 실패: " + err.message);
+              }
+          };
+      }
+
+      document.querySelectorAll('.close-profile-modal').forEach(btn => {
+          btn.onclick = () => userProfileModal.classList.remove('active');
+      });
+
+      if (userProfileForm) {
+          userProfileForm.addEventListener('submit', async (e) => {
+              e.preventDefault();
+              const user = auth.currentUser;
+              if (!user) return;
+
+              const name = document.getElementById('profile-edit-name').value;
+              const school = document.getElementById('profile-edit-school').value;
+              const position = document.getElementById('profile-edit-position').value;
+              const isHomeroom = document.getElementById('profile-edit-is-homeroom').checked;
+              const classInfo = document.getElementById('profile-edit-class-info').value;
+
+              const saveBtn = document.querySelector('button[form="userProfileForm"]');
+              const originalText = saveBtn ? saveBtn.innerText : "변경사항 저장";
+
+              try {
+                  if (saveBtn) {
+                      saveBtn.disabled = true;
+                      saveBtn.innerText = "저장 중...";
+                  }
+
+                  // Update Profile
+                  await updateProfile(user, { displayName: name });
+                  
+                  // Update Firestore
+                  const newProfile = {
+                      name, school, position, isHomeroom,
+                      classInfo: isHomeroom ? classInfo : ""
+                  };
+                  await updateDoc(doc(db, "users", user.uid), newProfile);
+
+                  // Update UI Greeting
+                  updateGreeting(newProfile);
+
+                  alert("프로필이 성공적으로 업데이트되었습니다.");
+                  userProfileModal.classList.remove('active');
+              } catch (err) {
+                  alert("저장 실패: " + err.message);
+              } finally {
+                  if (saveBtn) {
+                      saveBtn.disabled = false;
+                      saveBtn.innerText = originalText;
+                  }
+              }
+          });
+      }
+
+      // Profile Password Reset
+      const profileResetPwBtn = document.getElementById('profile-reset-pw-btn');
+      if (profileResetPwBtn) {
+          profileResetPwBtn.onclick = async () => {
+              const user = auth.currentUser;
+              if (!user || !user.email) return;
+
+              if (!confirm("비밀번호 재설정 이메일을 발송하시겠습니까?")) return;
+
+              try {
+                  await sendPasswordResetEmail(auth, user.email);
+                  alert("재설정 이메일이 발송되었습니다. 이메일을 확인해주세요.");
+              } catch (err) {
+                  alert("발송 실패: " + err.message);
+              }
+          };
+      }
+
+      if (adminUserForm) {
+          adminUserForm.addEventListener('submit', async (e) => {
+              e.preventDefault();
+              const uid = document.getElementById('admin-edit-uid').value;
+              const updates = {
+                  name: document.getElementById('admin-edit-name').value,
+                  school: document.getElementById('admin-edit-school').value,
+                  position: document.getElementById('admin-edit-position').value,
+                  isHomeroom: document.getElementById('admin-edit-is-homeroom').checked,
+                  classInfo: document.getElementById('admin-edit-class-info').value,
+                  role: document.getElementById('admin-edit-role').value
+              };
+
+              try {
+                  await updateDoc(doc(db, "users", uid), updates);
+                  adminUserModal.classList.remove('active');
+              } catch (err) {
+                  alert("수정 실패: " + err.message);
+              }
+          });
+      }
+
+     </script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="data.js"></script>
+    <script src="helppageData.js"></script>
+    <script src="src/utils/holidays.js"></script>
+    <script src="src/utils/table-resizer.js"></script>
+    <script src="curriculum.js?v=24"></script>
+    <script src="script.js?v=9"></script>
+  </body>
+</html>
