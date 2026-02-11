@@ -362,8 +362,9 @@
             <button class="nav-item" data-category="account">학교계정</button>
             <button class="nav-item" data-category="curriculum">학사일정</button>
             <button class="nav-item" data-category="bus">배차신청</button>
+            <button class="nav-item" data-category="training" onclick="switchTab('training')">연수관리</button>
             <button class="nav-item" data-category="datayard">자료마당</button>
-            <button class="nav-item" data-category="support">온학교 e지원</button>
+            <button class="nav-item" data-category="support" onclick="switchTab('support')">온학교 e지원</button>
             <button class="nav-item hidden" id="nav-admin-btn" data-category="admin">관리자</button>
           </nav>
 
@@ -814,6 +815,195 @@
       </div>
     </section>
 
+      <!-- Curriculum Section (학사일정) -->
+      <section id="curriculum-section" class="category-content hidden">
+        <div class="curriculum-container">
+          <!-- Header & Controls -->
+          <div class="curriculum-header-area">
+            <div class="curriculum-title-group">
+              <h2><i class="fas fa-book-open"></i> 학사일정</h2>
+            </div>
+
+            <div class="curriculum-nav-group">
+              <button id="curr-prev-btn" class="nav-arrow-btn">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <div id="curriculum-current-period" class="period-display">
+                2026년 2월
+              </div>
+              <button id="curr-next-btn" class="nav-arrow-btn">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+              <button id="curr-today-btn" class="nav-today-btn">오늘</button>
+              <div class="curr-export-group">
+                <button
+                  id="curr-excel-btn"
+                  class="export-btn excel"
+                  title="엑셀로 내려받기"
+                >
+                  <i class="fas fa-file-excel"></i> 엑셀
+                </button>
+                <button
+                  id="curr-hwp-btn"
+                  class="export-btn hwp"
+                  title="한글파일로 내려받기"
+                >
+                  <i class="fas fa-file-word"></i> 한글
+                </button>
+              </div>
+            </div>
+
+            <div class="curriculum-actions">
+              <button id="curr-add-btn" class="btn-primary-gradient">
+                <i class="fas fa-plus"></i> 일정 추가
+              </button>
+              <div class="view-switcher">
+                <button
+                  class="view-btn active"
+                  data-curr-view="table"
+                  title="표 보기"
+                  id="view-toggle-table"
+                >
+                  <i class="fas fa-list"></i>
+                </button>
+                <button
+                  class="view-btn"
+                  data-curr-view="calendar"
+                  title="월별 달력"
+                  id="view-toggle-calendar"
+                >
+                  <i class="fas fa-calendar-alt"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Content Views -->
+          <div id="curriculum-content-wrapper" class="content-wrapper">
+            <!-- Member Confirmation Bar -->
+            <div id="curr-member-confirm-bar" class="curr-member-confirm-bar">
+              <!-- JS Generated Table -->
+            </div>
+
+            <!-- 1. Table View (Default) -->
+            <div id="curr-table-view" class="curr-view active">
+              <div class="curr-table-header">
+                <div class="th th-date">날짜</div>
+                <div class="th th-day">요일</div>
+                <div class="th th-life">특별일</div>
+                <div class="th th-edu">교육활동</div>
+                <div class="th th-staff">교직원 복무</div>
+                <div class="th th-doc">처리할 공문</div>
+              </div>
+              <div id="curr-table-body" class="curr-table-body">
+                <!-- JS Generated Rows -->
+              </div>
+            </div>
+
+            <!-- 2. Calendar View (FullCalendar) -->
+            <div id="curr-calendar-view" class="curr-view">
+              <div id="curr-fullcalendar"></div>
+              <div id="calendar"></div> <!-- For compatibility if needed -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Curriculum Event Modal -->
+      <div id="currModal" class="modal">
+        <div class="modal-content modal-lg">
+          <div class="modal-header">
+            <h2 id="currModalTitle">새 일정 등록</h2>
+            <span class="close-modal close-curr-modal">&times;</span>
+          </div>
+          <div class="modal-body">
+            <!-- Type Selection Step -->
+            <div id="curr-type-selector" class="type-selector-step">
+              <h3>일정 유형을 선택하세요</h3>
+              <div class="type-cards">
+                <div class="type-card" data-type="edu">
+                  <i class="fas fa-chalkboard-teacher"></i>
+                  <span>교육활동</span>
+                </div>
+                <div class="type-card" data-type="staff">
+                  <i class="fas fa-user-clock"></i>
+                  <span>교직원 복무</span>
+                </div>
+                <div class="type-card" data-type="doc">
+                  <i class="fas fa-file-signature"></i>
+                  <span>처리할 공문</span>
+                </div>
+                <div class="type-card" data-type="life">
+                  <i class="fas fa-sun"></i>
+                  <span>특별일(절기/행사)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Input Form Step -->
+            <form id="currEventForm" class="hidden">
+              <input type="hidden" id="curr-event-id" />
+              <input type="hidden" id="curr-event-type" />
+
+              <div class="form-header-bar">
+                <span id="curr-selected-type-badge" class="badge"
+                  >교육활동</span
+                >
+                <button type="button" id="curr-back-type-btn" class="btn-text">
+                  유형 변경
+                </button>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>날짜</label>
+                  <input type="date" id="curr-date" required />
+                </div>
+                <!-- Time is optional or specific to type -->
+                <div class="form-group hidden" id="curr-time-group">
+                  <label>시간</label>
+                  <input type="time" id="curr-time" />
+                </div>
+              </div>
+
+              <!-- Dynamic Fields Container -->
+              <div id="curr-dynamic-fields"></div>
+
+              <div class="form-group" id="curr-common-title-group">
+                <label id="curr-title-label">내용</label>
+                <input
+                  type="text"
+                  id="curr-title"
+                  required
+                  placeholder="내용을 입력하세요"
+                />
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              id="curr-delete-btn"
+              class="btn-delete hidden"
+            >
+              <i class="fas fa-trash"></i> 삭제
+            </button>
+            <div class="right-btns">
+              <button type="button" class="curr-btn-secondary close-curr-modal">
+                취소
+              </button>
+              <button
+                type="submit"
+                form="currEventForm"
+                class="curr-btn-primary"
+              >
+                저장
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     <!-- Bus Section (배차신청) -->
     <section id="bus-section" class="category-content hidden">
       <div id="bus-controls" class="section-controls">
@@ -853,6 +1043,42 @@
       </div>
     </section>
 
+
+    <!-- Section: Training Management -->
+    <section id="training-section" class="category-content hidden">
+      <div class="content-body training-container">
+        <!-- Training Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <h2 class="section-title"><i class="fas fa-chalkboard-teacher"></i> 연수정보 및 교직원 연수 이수 현황</h2>
+          <button class="btn-primary" onclick="window.openTrainingModal()">
+            <i class="fas fa-plus"></i> 연수 정보 추가
+          </button>
+        </div>
+        <div class="table-container training-table-wrapper">
+              <table class="training-table-modern" id="training-table" style="table-layout: fixed; width: 100%;">
+                  <thead>
+                      <tr>
+                          <th style="width:40px;"></th>
+                          <th style="width:50px; cursor:pointer;" onclick="window.sortTrainings('date')">번호 <i class="fas fa-sort"></i></th>
+                          <th style="width:70px; cursor:pointer;" onclick="window.sortTrainings('category')">구분 <i class="fas fa-sort"></i></th>
+                          <th style="width:240px; cursor:pointer;" onclick="window.sortTrainings('title')">연수명 <i class="fas fa-sort"></i></th>
+                          <th style="width:90px; cursor:pointer;" onclick="window.sortTrainings('target')">연수대상 <i class="fas fa-sort"></i></th>
+                          <th style="width:80px; cursor:pointer;" onclick="window.sortTrainings('deadline')">기한 <i class="fas fa-sort"></i></th>
+                          <th style="width:70px; cursor:pointer;" onclick="window.sortTrainings('manager')">담당자 <i class="fas fa-sort"></i></th>
+                          <th style="width:260px;">이수자 명단</th>
+                          <th style="width:140px;">연수 정보</th>
+                          <th style="width:120px;">비고</th>
+                          <th style="width:100px;">관리</th>
+                      </tr>
+                  </thead>
+                  <tbody id="training-list">
+                      <!-- JS Generated -->
+                  </tbody>
+              </table>
+          </div>
+      </div>
+    </section>
+
     <!-- Helppage Section (온학교 e지원) -->
     <section id="helppage-section" class="category-content hidden"></section>
 
@@ -878,6 +1104,9 @@
             </button>
             <button class="admin-nav-btn" onclick="switchAdminView('bin')" data-view="bin">
                 <i class="fas fa-trash-restore"></i> 휴지통
+            </button>
+            <button class="admin-nav-btn" onclick="switchAdminView('menus')" data-view="menus">
+                <i class="fas fa-sliders-h"></i> 메뉴 관리
             </button>
             <button class="admin-nav-btn download-csv" onclick="downloadUserCSV()">
                 <i class="fas fa-file-csv"></i> 명부 다운로드
@@ -1149,9 +1378,210 @@
                     </table>
                 </div>
             </div>
+
+            <!-- View: Menu Management -->
+            <div id="admin-view-menus" class="admin-view">
+                <div class="view-header">
+                    <h2>메뉴 및 위젯 관리</h2>
+                    <p class="view-desc">메인 탭 및 사이드바 위젯의 표시 여부를 설정합니다.</p>
+                </div>
+                
+                <div class="menu-settings-container">
+                    <h3 class="menu-settings-subtitle"><i class="fas fa-layer-group" style="color: var(--primary-color);"></i> 메인 메뉴 탭 설정</h3>
+                    <div id="admin-menu-toggle-list" class="menu-toggle-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;">
+                        <!-- JS Generated -->
+                        <div style="padding: 20px; text-align: center; color: #94a3b8;">로딩 중...</div>
+                    </div>
+
+                    <h3 class="menu-settings-subtitle" style="margin-top: 40px;"><i class="fas fa-columns" style="color: var(--primary-color);"></i> 사이드바 위젯 설정</h3>
+                    <div id="admin-widget-toggle-list" class="widget-toggle-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;">
+                         <!-- JS Generated -->
+                         <div style="padding: 20px; text-align: center; color: #94a3b8;">로딩 중...</div>
+                    </div>
+                </div>
+                    <button class="btn-primary" onclick="saveMenuSettings()" style="padding: 10px 24px; font-size: 1rem;">
+                        <i class="fas fa-save"></i> 설정 저장하기
+                    </button>
+                </div>
+            </div>
         </main>
       </div>
     </section>
+
+    <!-- Section: Training Management -->
+
+
+    <!-- Training Modal -->
+    <!-- Training Modal -->
+    <div id="trainingModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2 id="trainingModalTitle">연수 정보 추가</h2>
+                <button class="close-modal" onclick="window.closeTrainingModal()">&times;</button>
+            </div>
+            <div class="modal-body training-modal-body">
+                <form id="trainingForm">
+                    <input type="hidden" id="training-id">
+                    
+                    <!-- 1. Training Name -->
+                    <div class="form-section mb-24">
+                        <label class="form-label training-form-label">연수명 <span>(필수)</span></label>
+                        <input type="text" id="training-title" class="form-input-modern training-input-modern" required placeholder="예: 초등교원 기초학력 향상 역량강화 연수">
+                    </div>
+
+                    <!-- 2. Category (Row) -->
+                    <div class="flex gap-40 mb-24 items-start">
+                        <!-- Category -->
+                        <div class="form-section">
+                            <label class="form-label training-form-label">구분 <span>(필수)</span></label>
+                            <!-- Segmented Control Style -->
+                            <div class="segmented-control training-segmented-control">
+                                <label class="segment-btn">
+                                    <input type="radio" name="trainingCategory" value="권장" onchange="updateSegmentStyle(this)">
+                                    <div class="segment-box">권장</div>
+                                </label>
+                                <label class="segment-btn">
+                                    <input type="radio" name="trainingCategory" value="필수" checked onchange="updateSegmentStyle(this)">
+                                    <div class="segment-box active">필수</div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Target Audience (Box Grid) -->
+                    <div class="form-section mb-24">
+                        <label class="form-label training-form-label">연수대상 <span>(필수)</span></label>
+                        <div class="target-grid" style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+                            <!-- Checkbox Cards (JS will handle logic) -->
+                            <label class="target-card">
+                                <input type="checkbox" name="target" value="전교직원">
+                                <span class="card-box"></span>
+                                <span class="card-text">전교직원</span>
+                            </label>
+                            <label class="target-card">
+                                <input type="checkbox" name="target" value="교장">
+                                <span class="card-box"></span>
+                                <span class="card-text">교장</span>
+                            </label>
+                            <label class="target-card">
+                                <input type="checkbox" name="target" value="교원">
+                                <span class="card-box"></span>
+                                <span class="card-text">교원</span>
+                            </label>
+                            <label class="target-card">
+                                <input type="checkbox" name="target" value="지방공무원">
+                                <span class="card-box"></span>
+                                <span class="card-text">지방공무원</span>
+                            </label>
+                            <label class="target-card">
+                                <input type="checkbox" name="target" value="교육공무직">
+                                <span class="card-box"></span>
+                                <span class="card-text">교육공무직</span>
+                            </label>
+                             <label class="target-card">
+                                <input type="checkbox" name="target" value="담당자">
+                                <span class="card-box"></span>
+                                <span class="card-text">담당자</span>
+                            </label>
+                        </div>
+                        
+                        <!-- Direct Input -->
+                        <div class="training-direct-input-row">
+                            <div class="checkbox-wrapper-square">
+                                <input type="checkbox" id="target-direct-check">
+                            </div>
+                            <span class="direct-label">직접 입력:</span>
+                            <input type="text" id="target-direct-input" disabled class="direct-field" placeholder="예: 전 교원">
+                        </div>
+                    </div>
+
+                    <div class="flex gap-20 mb-24">
+                        <div class="flex-1">
+                            <label class="form-label training-form-label">이수증 제출 기한</label>
+                            <input type="date" id="training-deadline" class="form-input-modern training-input-modern">
+                        </div>
+                        <div class="flex-1">
+                            <label class="form-label training-form-label">담당자</label>
+                            <input type="text" id="training-manager" class="form-input-modern training-input-modern" placeholder="담당자 이름">
+                        </div>
+                    </div>
+
+                    <div class="mb-30">
+                        <label class="form-label training-form-label">연수 정보</label>
+                        <div class="grid grid-cols-1-2 gap-10">
+                            <input type="text" id="training-site-name" class="form-input-modern training-input-modern" placeholder="사이트명 (예: 경남교육연수포털)">
+                            <input type="url" id="training-link" class="form-input-modern training-input-modern" placeholder="https://www.gneti.or.kr/">
+                        </div>
+                    </div>
+
+                    <div class="modal-footer training-modal-footer">
+                         <button type="button" class="btn-secondary" onclick="window.closeTrainingModal()">취소</button>
+                        <button type="submit" class="btn-primary" id="training-submit-btn">저장</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Completer Selection Modal -->
+    <div id="completerModal" class="modal">
+        <div class="modal-content completer-modal-content">
+            <div class="modal-header">
+                <h2>이수자 선택</h2>
+                <span class="close-modal" onclick="window.closeCompleterModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="search-bar mb-10">
+                    <input type="text" id="completer-search" placeholder="이름 검색..." class="form-input-modern training-input-modern" onkeyup="window.filterCompleterList()">
+                    <div class="mt-10 flex gap-8">
+                        <button type="button" onclick="window.toggleAllCompleters(true)" class="btn-text text-blue">모두 선택</button>
+                        <button type="button" onclick="window.toggleAllCompleters(false)" class="btn-text text-slate">모두 해제</button>
+                    </div>
+                </div>
+                <div id="completer-list-container">
+                    <!-- JS Generated Checkboxes -->
+                </div>
+                <div class="mt-10 flex justify-between items-center">
+                    <div class="text-slate fs-085">
+                        <span id="completer-selected-count">0</span>명 선택됨
+                    </div>
+                    <!-- Only Admin can manage staff list -->
+                    <button class="btn-text admin-feature text-blue fs-085" onclick="window.openStaffSettingsModal()">
+                        <i class="fas fa-cog"></i> 직원 명단 관리
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" onclick="window.closeCompleterModal()">취소</button>
+                <button type="button" class="btn-primary" onclick="window.saveCompleters()">선택 완료</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Staff Settings Modal (Admin Only) -->
+    <div id="staffSettingsModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>직원 명단 관리</h2>
+                <span class="close-modal" onclick="document.getElementById('staffSettingsModal').classList.remove('active')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group" style="display: flex; gap: 8px; margin-bottom: 20px;">
+                    <input type="text" id="new-staff-name" class="form-input-modern" placeholder="이름 입력" style="flex:1; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                    <button class="btn-primary" onclick="window.addStaffMember()" style="padding: 0 20px;">추가</button>
+                </div>
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:8px; font-weight:600;">직원 목록</label>
+                    <ul id="staff-management-list" style="list-style: none; padding: 0; max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+                        <!-- JS Generated -->
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-primary" onclick="document.getElementById('staffSettingsModal').classList.remove('active')">닫기</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Admin User Edit Modal -->
     <div id="adminUserModal" class="modal">
@@ -1298,14 +1728,15 @@
                     <div class="form-row" style="align-items: flex-end; margin-top: 10px;">
                         <div class="form-group" style="flex: 0 0 auto; margin-right: 15px;">
                             <label style="display:block; margin-bottom: 6px;">담임 여부</label>
-                            <div class="toggle-wrapper">
-                                <span class="toggle-label-text">담임 아님</span>
-                                <label class="switch">
-                                    <input type="checkbox" id="profile-edit-is-homeroom">
-                                    <span class="slider round"></span>
-                                </label>
-                                <span class="toggle-label-text">담임</span>
+                            <div class="segmented-control-container">
+                                <div id="btn-homeroom-off" class="segment-btn-custom" onclick="window.toggleHomeroomUI(false)">
+                                    담임 아님
+                                </div>
+                                <div id="btn-homeroom-on" class="segment-btn-custom" onclick="window.toggleHomeroomUI(true)">
+                                    담임
+                                </div>
                             </div>
+                            <input type="checkbox" id="profile-edit-is-homeroom" style="display: none;">
                         </div>
                         <div id="profile-edit-class-info-group" class="form-group hidden" style="flex: 1;">
                             <label>학년/반 정보</label>
@@ -1427,7 +1858,6 @@
                 <span>특별일(절기/행사)</span>
               </div>
             </div>
-          </div>
 
           <!-- Input Form Step -->
           <form id="currEventForm" class="hidden">
@@ -1769,7 +2199,9 @@
       window.firestoreUtils = { collection, getDocs, getDoc, setDoc, addDoc, doc, deleteDoc, query, onSnapshot, updateDoc, orderBy, where };
       window.storageUtils = { ref, uploadBytes, getDownloadURL, deleteObject };
       
+      console.log("Firebase initialized successfully");
       // Notify script.js that Firebase is ready
+      window.firebaseReady = true;
       window.dispatchEvent(new Event('firebase-ready'));
 
       // ================= AUTH LOGIC =================
@@ -2491,6 +2923,9 @@
                   const isHomeroomCb = document.getElementById('profile-edit-is-homeroom');
                   isHomeroomCb.checked = userData.isHomeroom || false;
                   
+                  // Initialize UI State
+                  if(window.toggleHomeroomUI) window.toggleHomeroomUI(isHomeroomCb.checked);
+                  
                   const classGroup = document.getElementById('profile-edit-class-info-group');
                   const classInput = document.getElementById('profile-edit-class-info');
                   
@@ -2606,13 +3041,37 @@
           });
       }
 
+      // Helper for Homeroom Segmented Control
+      window.toggleHomeroomUI = function(isHomeroom) {
+          const cb = document.getElementById('profile-edit-is-homeroom');
+          const btnOff = document.getElementById('btn-homeroom-off');
+          const btnOn = document.getElementById('btn-homeroom-on');
+          
+          // Update Styles
+          if(isHomeroom) {
+              if(btnOn) btnOn.classList.add('active');
+              if(btnOff) btnOff.classList.remove('active');
+          } else {
+              if(btnOn) btnOn.classList.remove('active');
+              if(btnOff) btnOff.classList.add('active');
+          }
+
+          // Update Checkbox and Trigger Change Event if value changed
+          if(cb && cb.checked !== isHomeroom) {
+              cb.checked = isHomeroom;
+              const event = new Event('change');
+              cb.dispatchEvent(event);
+          }
+      };
      </script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="data.js"></script>
     <script src="helppageData.js"></script>
     <script src="src/utils/holidays.js"></script>
     <script src="src/utils/table-resizer.js"></script>
-    <script src="curriculum.js?v=33&t=20260211005331"></script>
+    <script src="training.js?v=5"></script> <!-- Load Shim First -->
+    <script src="training_fixed.js"></script> <!-- Override Patch -->
+    <script src="curriculum.js?v=33&t=20260211_1804"></script>
     <script src="script.js?v=13&t=20260211002941"></script>
   </body>
 </html>

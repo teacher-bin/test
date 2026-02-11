@@ -36,22 +36,47 @@ document.addEventListener("DOMContentLoaded", () => {
     const formDynamicFields = document.getElementById("curr-dynamic-fields");
     
     // --- Initialization ---
-    initCurriculum();
+    // 기존의 이벤트 리스너 방식 대신, 확실한 폴링(Polling) 방식으로 변경
+    const checkFirebaseAndInit = () => {
+        if (window.db && window.firebaseReady) {
+            console.log("Curriculum: Firebase detected. Initializing...");
+            initCurriculum();
+        } else {
+            console.log("Curriculum: Waiting for Firebase...");
+            setTimeout(checkFirebaseAndInit, 100); // 100ms 마다 체크
+        }
+    };
+    checkFirebaseAndInit();
 
     async function initCurriculum() {
-        if (!window.db) {
-            window.addEventListener("firebase-ready", initCurriculum, { once: true });
-            return;
-        }
+        console.log("Curriculum: Starting Initial Render...");
         
+        // 1. 기본 UI 설정 및 즉시 렌더링 (빈 화면 방지)
         setupEventListeners();
         updatePeriodDisplay();
+        renderCurrentView(); // [중요] 데이터 없어도 일단 달력을 그린다!
         
-        await loadCurriculumEvents();
-        await loadMemberConfig();
-        await loadYearlyData(currDate.getFullYear());
-        
-        renderCurrentView();
+        // window 객체에 렌더링 함수 노출 (script.js에서 사용 가능하도록)
+        window.renderCurriculum = () => {
+             console.log("Forced curriculum render");
+             // 데이터가 없다면 다시 로드 시도
+             if(!currEvents || currEvents.length === 0) loadCurriculumEvents().then(renderCurrentView);
+             else renderCurrentView();
+        };
+
+        // 2. 비동기 데이터 로딩 (백그라운드)
+        console.log("Curriculum: Loading Data...");
+        try {
+            await Promise.all([
+                loadCurriculumEvents(),
+                loadMemberConfig(),
+                loadYearlyData(currDate.getFullYear())
+            ]);
+            console.log("Curriculum: Data Loaded. Re-rendering...");
+            renderCurrentView(); // 데이터 채워진 후 다시 그리기
+        } catch (err) {
+            console.error("Curriculum: Data Load Failed", err);
+        }
     }
 
 
@@ -79,8 +104,12 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const docRef = firestoreUtils.doc(db, "settings", "curriculum_members");
             const docSnap = await firestoreUtils.getDoc(docRef);
-            if (docSnap.exists()) {
-                const list = docSnap.data().list;
+            
+            // Defense against docSnap.exists is not a function
+            const exists = (docSnap && typeof docSnap.exists === 'function') ? docSnap.exists() : (docSnap && docSnap.exists);
+
+            if (exists) {
+                const list = (typeof docSnap.data === 'function' ? docSnap.data() : docSnap.data).list;
                 if (Array.isArray(list) && list.length > 0) {
                     currMembers = list;
                 } else {
@@ -105,8 +134,11 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const docRef = firestoreUtils.doc(db, "curriculum_yearly_confirms", String(year));
             const docSnap = await firestoreUtils.getDoc(docRef);
-            if (docSnap.exists()) {
-                currYearlyData = docSnap.data();
+            
+            const exists = (docSnap && typeof docSnap.exists === 'function') ? docSnap.exists() : (docSnap && docSnap.exists);
+
+            if (exists) {
+                currYearlyData = (typeof docSnap.data === 'function' ? docSnap.data() : docSnap.data);
             } else {
                 currYearlyData = {};
             }
@@ -268,24 +300,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 btn.classList.add("active");
                 currViewMode = view;
                 
-                // Toggle Container Visibility
-                if(view === 'table') {
-                    tableView.classList.add('active');
-                    calendarView.classList.remove('active');
-                    renderTable();
-                } else {
-                    tableView.classList.remove('active');
-                    calendarView.classList.add('active');
-                    
-                    if(!calendarInstance) {
-                        renderFullCalendar(view);
-                    } else {
-                        // Change View
-                        if(view === 'calendar') calendarInstance.changeView('dayGridMonth');
-                        
-                        calendarInstance.render();
-                    }
-                }
+                // Delegate all rendering logic to the main render function
+                renderCurrentView();
             });
         });
 
@@ -394,25 +410,59 @@ document.addEventListener("DOMContentLoaded", () => {
         // Always render confirm bar
         renderMemberConfirmBar();
 
+        const tableView = document.getElementById("curr-table-view");
+        const calendarView = document.getElementById("curr-calendar-view");
+
+        // Force visibility based on mode
         if(currViewMode === 'table') {
+            if(tableView) {
+                tableView.classList.add('active');
+                tableView.style.display = 'block'; // Failsafe
+            }
+            if(calendarView) {
+                calendarView.classList.remove('active');
+                calendarView.style.display = 'none';
+            }
             renderTable();
         } else if(currViewMode === 'calendar') {
+            if(tableView) {
+                tableView.classList.remove('active');
+                tableView.style.display = 'none';
+            }
+            if(calendarView) {
+                calendarView.classList.add('active');
+                calendarView.style.display = 'block';
+            }
+            
             // FullCalendar updates itself mostly, but we might need to refetch events
             if(calendarInstance) {
+                // Force size update after visibility change
+                setTimeout(() => {
+                     calendarInstance.updateSize();
+                     calendarInstance.render();
+                }, 50);
+
                 calendarInstance.refetchEvents();
                 calendarInstance.gotoDate(currDate); // Ensure view moves to currDate (Today)
                 // Reapply dark mode styles after calendar updates
                 if(window.applyCalendarDarkMode) window.applyCalendarDarkMode();
             } else {
-                renderFullCalendar();
+                // Initial Render needs small delay too if container was hidden
+                setTimeout(() => renderFullCalendar(), 50);
             }
         }
     }
 
     // --- Table Rendering Logic ---
     function renderTable() {
-        if(!tableBody) return;
-        tableBody.innerHTML = "";
+        const body = document.getElementById("curr-table-body");
+        console.log("Curriculum: renderTable called.", { body, date: currDate });
+
+        if(!body) {
+            console.error("Curriculum: Table Body Element NOT FOUND!");
+            return;
+        }
+        body.innerHTML = "";
 
         const y = currDate.getFullYear();
         const m = currDate.getMonth();
@@ -461,16 +511,21 @@ document.addEventListener("DOMContentLoaded", () => {
             dateCell.dataset.day = d; // Essential for Drag & Drop logic
             
             const todayStr = formatDate(new Date());
-            if (dateStr === todayStr) {
+            const isToday = (dateStr === todayStr);
+
+            // Refactored Date Number & Badge Logic
+            const dateNum = document.createElement("span");
+            dateNum.className = isToday ? "date-number today-circle" : "date-number";
+            dateNum.textContent = d;
+
+            if (isToday) {
                 const badge = document.createElement("span");
                 badge.className = "today-badge";
-                badge.textContent = "오늘";
+                badge.textContent = "오늘"; // Badge created first to appear on top in flex-col
                 dateCell.appendChild(badge);
                 dateCell.classList.add("is-today");
             }
             
-            const dateNum = document.createElement("span");
-            dateNum.textContent = d;
             dateCell.appendChild(dateNum);
             
             dateCell.onclick = () => {
@@ -490,7 +545,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const docCell = createEventCell(dayEvents, 'doc', dateStr);
 
             row.append(dateCell, dayCell, lifeCell, eduCell, staffCell, docCell);
-            tableBody.appendChild(row);
+            body.appendChild(row);
         }
 
         // Apply SortableJS to each event-containing cell
@@ -563,6 +618,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     // Refresh widget if exists
                     if (window.updateTodayWidget) window.updateTodayWidget();
+
+                    // [LOG] 학사일정 이동 로그 기록
+                    if (window.logUserAction) {
+                         const movedEvent = currEvents.find(e => e.id === eventId);
+                         const title = movedEvent ? movedEvent.title : '일정';
+
+                         if (fromCell !== targetCell) {
+                             // 날짜 또는 타입 변경
+                             const fromRow = fromCell.closest('.curr-row');
+                             if (fromRow) {
+                                 const fromDateDay = fromRow.querySelector('.date-cell').dataset.day;
+                                 const oldDate = formatDate(new Date(y, m, parseInt(fromDateDay)));
+                                 // newDate는 상단에서 이미 정의됨
+                                 
+                                 window.logUserAction('curriculum', '이동', `${title} (${oldDate} → ${newDate})`);
+                             }
+                         } else {
+                             // 같은 셀 내 순서 변경
+                             window.logUserAction('curriculum', '순서변경', `${title} (${newDate}) 순서 변경`);
+                         }
+                    }
                 }
             });
         });
@@ -573,11 +649,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const { db, firestoreUtils } = window;
          try {
             // Use updateDoc instead of setDoc to only update specified fields
-            await firestoreUtils.updateDoc(firestoreUtils.doc(db, "curriculum_events", id), fields);
+            const updates = { ...fields, updatedAt: new Date().toISOString() };
+            await firestoreUtils.updateDoc(firestoreUtils.doc(db, "curriculum_events", id), updates);
             // Sync locally
             const ev = currEvents.find(e => e.id === id);
             if(ev) {
-                Object.assign(ev, fields);
+                Object.assign(ev, updates);
             }
         } catch(err) { console.error(err); }
     }
@@ -661,7 +738,40 @@ document.addEventListener("DOMContentLoaded", () => {
                 prefixHtml = `<input type="checkbox" class="doc-checkbox" ${ev.isCompleted ? 'checked' : ''} onclick="window.toggleDocComplete('${ev.id}', this)">`;
             }
 
+            // [New Badge Logic]
+            // Check if created or updated within last 3 days
+            const now = new Date();
+            const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+            const eventTime = ev.updatedAt ? new Date(ev.updatedAt) : (ev.createdAt ? new Date(ev.createdAt) : null);
+            let badgeHtml = '';
+            
+            if (eventTime && (now - eventTime) < threeDaysMs) {
+                badgeHtml = `
+                    <div class="new-badge" style="
+                        position: absolute;
+                        top: -6px;
+                        left: -6px;
+                        width: 16px;
+                        height: 16px;
+                        background-color: #ef4444; 
+                        color: white;
+                        font-family: 'Inter', sans-serif;
+                        font-size: 9px;
+                        font-weight: 800;
+                        border-radius: 50%;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        z-index: 10;
+                        box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+                        border: 1.5px solid white;
+                        pointer-events: none;
+                    ">N</div>
+                `;
+            }
+
             chip.innerHTML = `
+                ${badgeHtml}
                 ${prefixHtml}
                 <span class="chip-text ${ev.isCompleted ? 'completed-text' : ''}">${displayTitle}</span>
                 <div class="chip-controls">
@@ -1457,6 +1567,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         eventData.inCharge = first.inCharge;
                         eventData.backgroundColor = first.backgroundColor;
                         eventData.textColor = first.textColor;
+                        eventData.updatedAt = new Date().toISOString();
                         await firestoreUtils.setDoc(firestoreUtils.doc(db, "curriculum_events", eventId), eventData, { merge: true });
                     } else {
                         for (const item of bulkData) {
@@ -1465,7 +1576,9 @@ document.addEventListener("DOMContentLoaded", () => {
                                 title: item.title, 
                                 inCharge: item.inCharge,
                                 backgroundColor: item.backgroundColor,
-                                textColor: item.textColor
+                                textColor: item.textColor,
+                                createdAt: new Date().toISOString(),
+                                updatedAt: new Date().toISOString()
                             };
                             // Generate unique ID manually
                             const newId = `evt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -1474,8 +1587,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 } else {
                     if (eventId) {
+                        eventData.updatedAt = new Date().toISOString();
                         await firestoreUtils.setDoc(firestoreUtils.doc(db, "curriculum_events", eventId), eventData, { merge: true });
                     } else {
+                        eventData.createdAt = new Date().toISOString();
+                        eventData.updatedAt = new Date().toISOString();
                         // Generate unique ID manually
                         const newId = `evt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
                         await firestoreUtils.setDoc(firestoreUtils.doc(db, "curriculum_events", newId), eventData);

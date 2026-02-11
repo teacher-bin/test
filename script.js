@@ -23,6 +23,21 @@
     });
   }
 
+  // Sidebar Visibility Control for Wide Tabs
+  const leftSidebar = document.getElementById('left-sidebar');
+  if (leftSidebar && navItems.length > 0) {
+      navItems.forEach(btn => {
+          btn.addEventListener('click', () => {
+              const cat = btn.dataset.category;
+              if (cat === 'curriculum' || cat === 'training') {
+                  leftSidebar.classList.add('hidden');
+              } else {
+                  leftSidebar.classList.remove('hidden');
+              }
+          });
+      });
+  }
+
   let currentCategory = "all";
   let calendar = null; // FullCalendar 인스턴스
 
@@ -858,6 +873,7 @@
           if (deletePromises.length > 0) {
               await Promise.all(deletePromises);
           }
+          if (window.logUserAction) window.logUserAction('status', '저장', '학교 현황 데이터를 저장했습니다.');
           
       } catch (e) {
           console.error("Status save error details:", e);
@@ -976,6 +992,7 @@
                       const entry = Object.entries(statusData).find(e => e[1].title === tabName);
                       if (entry) statusData[entry[0]].order = index;
                   });
+                  if (window.logUserAction) window.logUserAction('status', '순서변경', '탭 순서를 변경했습니다.');
               }
           });
       }
@@ -1050,9 +1067,11 @@
 
   // Actions
   window.removeTab = (id) => {
+      const title = statusData[id]?.title || id;
       if (confirm('이 탭을 삭제하시겠습니까?')) {
           delete statusData[id];
           if (activeTabId === id) activeTabId = Object.keys(statusData)[0] || null;
+          if (window.logUserAction) window.logUserAction('status', '탭삭제', `탭: ${title}`);
           renderStatusTabs();
           renderStatusContent();
       }
@@ -1064,6 +1083,7 @@
           const id = 'tab_' + Date.now();
           statusData[id] = { title, order: Object.keys(statusData).length, columns: 1, tables: [{ headers: ['제목1'], widths:[100], rows: [['']] }] };
           activeTabId = id;
+          if (window.logUserAction) window.logUserAction('status', '탭생성', `새 탭: ${title}`);
           renderStatusTabs();
           renderStatusContent();
           renderStatusControls();
@@ -1072,12 +1092,14 @@
 
   window.addTableToTab = (tabId) => {
       statusData[tabId].tables.push({ headers: ['제목1'], widths: [100], rows: [['']] });
+      if (window.logUserAction) window.logUserAction('status', '표추가', `탭: ${statusData[tabId].title}`);
       renderStatusContent();
   };
 
   window.removeTableFromTab = (tabId, tIdx) => {
       if (confirm('이 표를 삭제하시겠습니까?')) {
           statusData[tabId].tables.splice(tIdx, 1);
+          if (window.logUserAction) window.logUserAction('status', '표삭제', `탭: ${statusData[tabId].title}, 표: ${tIdx + 1}번`);
           renderStatusContent();
       }
   };
@@ -1086,6 +1108,7 @@
       const table = statusData[tabId].tables[tIdx];
       if (type === 'add') table.rows.push(Array(table.headers.length).fill(''));
       else if (table.rows.length > 0) table.rows.pop();
+      if (window.logUserAction) window.logUserAction('status', type === 'add' ? '행추가' : '행삭제', `탭: ${statusData[tabId].title}, 표: ${tIdx + 1}번`);
       renderStatusContent();
   };
 
@@ -1101,6 +1124,7 @@
           if (table.widths) table.widths.pop();
           table.rows.forEach(r => r.pop());
       }
+      if (window.logUserAction) window.logUserAction('status', type === 'add' ? '열추가' : '열삭제', `탭: ${statusData[tabId].title}, 표: ${tIdx + 1}번`);
       renderStatusContent();
   };
 
@@ -1120,6 +1144,23 @@
     } else {
       await loadDatayardFromFirebase();
     }
+    // Force show edit button and its container if hidden
+    setTimeout(() => {
+        const btn = document.getElementById('datayard-edit-mode-btn');
+        if(btn) {
+            btn.classList.remove('hidden');
+            btn.style.setProperty('display', 'inline-flex', 'important');
+            
+            // Ensure parent container is also visible (fixes mobile/responsive layout hiding it)
+            const parent = btn.closest('.datayard-controls');
+            if(parent) {
+                parent.classList.remove('hidden');
+                parent.style.setProperty('display', 'flex', 'important');
+                parent.style.setProperty('gap', '10px', 'important');
+                parent.style.setProperty('align-items', 'center', 'important');
+            }
+        }
+    }, 500);
   }
 
   async function loadDatayardFromFirebase() {
@@ -1157,6 +1198,7 @@
       for (const group of localDatayardData) {
         await firestoreUtils.setDoc(firestoreUtils.doc(db, "datayardGroups", group.id), group);
       }
+      if(window.logUserAction) window.logUserAction('datayard', '수정', '자료마당 전체 저장');
       alert("자료마당 변경사항이 저장되었습니다.");
     } catch (error) {
       console.error("Error saving datayard:", error);
@@ -1190,18 +1232,21 @@
                 <h3>${group.category}</h3>
                 <p>${group.category} 관련 자료 목록</p>
               </div>
-              ${datayardEditMode ? `
-                <div class="group-edit-actions">
-                  <button class="edit-btn edit-group-btn" title="그룹 수정"><i class="fas fa-pen"></i></button>
-                  <button class="delete-btn delete-group-btn" title="그룹 삭제"><i class="fas fa-trash"></i></button>
-                </div>
-              ` : ''}
+
             </div>
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <!-- Right Side Controls (Premium Unified UI) -->
+            <div style="display: flex; align-items: center; gap: 6px; margin-left: auto; flex-shrink: 0;">
                ${datayardEditMode ? `
-                  <button class="add-item-btn add-file-btn" title="자료 추가"><i class="fas fa-plus-circle"></i> 자료추가</button>
+                   <!-- Edit Group -->
+                   <button class="my-magic-edit-btn" title="그룹 수정" style="width: 32px; height: 32px; min-width: 32px; background: #ffffff !important; border: 1px solid #e2e8f0 !important; border-radius: 8px; cursor: pointer; display: inline-flex !important; position: static !important; align-items: center; justify-content: center; color: #64748b !important; margin: 0 !important; flex-shrink: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.2s ease;"><i class="fas fa-pen" style="font-size: 0.9rem;"></i></button>
+                   
+                   <!-- Delete Group -->
+                   <button class="my-magic-delete-btn" title="그룹 삭제" style="width: 32px; height: 32px; min-width: 32px; background: #ffffff !important; border: 1px solid #e2e8f0 !important; border-radius: 8px; cursor: pointer; display: inline-flex !important; position: static !important; align-items: center; justify-content: center; color: #ef4444 !important; margin: 0 !important; flex-shrink: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.2s ease;"><i class="fas fa-trash" style="font-size: 0.9rem;"></i></button>
+                   
+                   <!-- Add Item (Simplified to Icon) -->
+                   <button class="add-item-btn add-file-btn" title="자료 추가" style="width: 32px; height: 32px; min-width: 32px; background: #ffffff !important; border: 1px solid #e2e8f0 !important; border-radius: 8px; cursor: pointer; display: inline-flex !important; position: static !important; align-items: center; justify-content: center; color: #10b981 !important; margin: 0 !important; flex-shrink: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.2s ease;"><i class="fas fa-plus" style="font-size: 1rem;"></i></button>
                ` : ''}
-               <i class="fas fa-chevron-down main-chevron"></i>
+               <i class="fas fa-chevron-down main-chevron" style="margin-left: 10px; cursor: pointer; flex-shrink: 0; color: #94a3b8;"></i>
             </div>
           </div>
           
@@ -1259,12 +1304,12 @@
           openDatayardGroupModal(group);
         });
 
-        card.querySelector(".edit-group-btn").addEventListener("click", (e) => {
+        card.querySelector(".my-magic-edit-btn").addEventListener("click", (e) => {
           e.stopPropagation();
           openDatayardGroupModal(group);
         });
 
-        card.querySelector(".delete-group-btn").addEventListener("click", (e) => {
+        card.querySelector(".my-magic-delete-btn").addEventListener("click", (e) => {
           e.stopPropagation();
           deleteDatayardGroup(group.id);
         });
@@ -1423,11 +1468,13 @@
     if(confirm("이 그룹과 포함된 모든 자료를 삭제하시겠습니까?")) {
       const index = localDatayardData.findIndex(g => g.id === groupId);
       if(index > -1) {
+        const deletedGroup = localDatayardData[index];
         localDatayardData.splice(index, 1);
         // Firebase 삭제
         if(window.db) {
           const { db, firestoreUtils } = window;
           firestoreUtils.deleteDoc(firestoreUtils.doc(db, "datayardGroups", groupId));
+          if(window.logUserAction) window.logUserAction('datayard', '삭제', `그룹 삭제: ${deletedGroup.category}`);
         }
         renderDatayard();
       }
@@ -1438,7 +1485,9 @@
     if(confirm("이 자료를 삭제하시겠습니까?")) {
       const group = localDatayardData.find(g => g.id === groupId);
       if(group) {
+        const deletedItem = group.items[itemIdx];
         group.items.splice(itemIdx, 1);
+        if(window.logUserAction && deletedItem) window.logUserAction('datayard', '삭제', `자료 삭제: ${deletedItem.title} (그룹: ${group.category})`);
         renderDatayard();
       }
     }
@@ -1512,6 +1561,7 @@
       group.category = title;
       group.icon = icon;
       group.color = color;
+      if(window.logUserAction) window.logUserAction('datayard', '수정', `그룹 정보 수정: ${title}`);
     } else {
       // 추가
       const newId = `group-${Date.now()}`;
@@ -1523,6 +1573,7 @@
         items: [],
         order: localDatayardData.length
       });
+      if(window.logUserAction) window.logUserAction('datayard', '생성', `새 그룹 생성: ${title}`);
     }
     dyGroupModal.classList.remove('active');
     renderDatayard();
@@ -1577,9 +1628,11 @@
     if(itemId !== "") {
       // 수정
       group.items[itemId] = { title, url };
+      if(window.logUserAction) window.logUserAction('datayard', '수정', `자료 수정: ${title} (그룹: ${group.category})`);
     } else {
       // 추가
       group.items.push({ title, url });
+      if(window.logUserAction) window.logUserAction('datayard', '생성', `새 자료 추가: ${title} (그룹: ${group.category})`);
     }
 
     dyItemModal.classList.remove('active');
@@ -1610,17 +1663,19 @@
   dySaveOrderBtn.addEventListener('click', async () => {
     datayardEditMode = false;
     dyEditActions.classList.add('hidden');
+    if (dyEditBtn) dyEditBtn.classList.remove('hidden');
     await saveDatayardToFirebase();
     renderDatayard();
   });
 
   dyCancelEditBtn.addEventListener('click', () => {
-    if(confirm("저장하지 않은 변경사항은 사라집니다. 편집을 취소하시겠습니까?")) {
+    if (confirm("저장하지 않은 변경사항은 사라집니다. 편집을 취소하시겠습니까?")) {
       datayardEditMode = false;
       if (datayardBackup) {
         localDatayardData = JSON.parse(JSON.stringify(datayardBackup));
       }
       dyEditActions.classList.add('hidden');
+      if (dyEditBtn) dyEditBtn.classList.remove('hidden');
       renderDatayard();
     }
   });
@@ -2303,6 +2358,7 @@
              }
           });
           localAccountData = newOrder;
+          if (window.logUserAction) window.logUserAction('account', '순서변경', '계정 순서를 변경했습니다.');
         }
       });
     }
@@ -2342,6 +2398,7 @@
             await firestoreUtils.setDoc(firestoreUtils.doc(db, "schoolAccounts", acc.id), acc);
           }
           alert("저장되었습니다.");
+          if (window.logUserAction) window.logUserAction('account', '저장', '계정 변경사항을 저장했습니다.');
           accountEditMode = false;
           editActions.classList.add("hidden");
           renderAccountTable();
@@ -2478,6 +2535,7 @@
       const idx = localAccountData.findIndex(a => a.id === id);
       if (idx !== -1) {
         localAccountData[idx] = { ...localAccountData[idx], service, url, username, password, note };
+        if (window.logUserAction) window.logUserAction('account', '수정', `서비스: ${service}`);
       }
     } else {
       const newId = "acc-" + Date.now();
@@ -2490,6 +2548,7 @@
         note,
         order: localAccountData.length
       });
+      if (window.logUserAction) window.logUserAction('account', '생성', `서비스: ${service}`);
     }
 
     document.getElementById("accountModal").classList.remove("active");
@@ -2498,6 +2557,8 @@
 
   window.deleteAccount = (id) => {
     if (confirm("이 계정 정보를 삭제하시겠습니까?")) {
+      const acc = localAccountData.find(a => a.id === id);
+      if (window.logUserAction) window.logUserAction('account', '삭제', `서비스: ${acc ? acc.service : id}`);
       localAccountData = localAccountData.filter(a => a.id !== id);
       // Re-order
       localAccountData.forEach((acc, idx) => acc.order = idx);
@@ -3226,6 +3287,9 @@
                   return firestoreUtils.setDoc(firestoreUtils.doc(db, "boardPosts", id), { order: index }, { merge: true });
                 });
                 await Promise.all(promises);
+
+                // Log Action
+                if (window.logUserAction) window.logUserAction('board', '순서변경', '메모 순서 변경');
               } catch (err) {
                 console.error("Order save error:", err);
               }
@@ -3252,7 +3316,7 @@
         // Date parsing helper
         const date = post.createdAt ? new Date(post.createdAt).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute:'2-digit' }) : '';
         const author = post.author || '익명';
-        const strippedContent = post.content.replace(/<[^>]*>?/gm, ''); // stripped html
+        const strippedContent = (post.content || '').replace(/<[^>]*>?/gm, ''); // stripped html
 
         // Tag Generation
         let statusTag = '';
@@ -3378,10 +3442,18 @@
           const currentPostsSnap = await firestoreUtils.getDocs(firestoreUtils.collection(db, "boardPosts"));
           postData.order = currentPostsSnap.size;
           
-          const newDocRef = firestoreUtils.doc(firestoreUtils.collection(db, "boardPosts"));
+          // Fix: Create doc ref correctly for compat SDK
+          const newDocRef = firestoreUtils.collection(db, "boardPosts").doc();
           await firestoreUtils.setDoc(newDocRef, postData);
         }
         
+        // Log Action
+        if (window.logUserAction) {
+             const action = id ? '수정' : '생성';
+             const summary = content.replace(/<[^>]*>/g, '').substring(0, 20);
+             window.logUserAction('board', action, `메모 ${action}: ${summary}...`);
+        }
+
         modal.classList.remove('active');
         loadBoard();
       } catch (err) {
@@ -3396,6 +3468,10 @@
       const { db, firestoreUtils } = window;
       try {
         await firestoreUtils.deleteDoc(firestoreUtils.doc(db, "boardPosts", id));
+
+        // Log Action
+        if (window.logUserAction) window.logUserAction('board', '삭제', '메모 삭제');
+
         loadBoard();
       } catch (err) {
         console.error("Delete error:", err);
@@ -3978,10 +4054,20 @@
           window.db = db;
           
           // Compat Mapper for existing modular-style calls in script.js
+          // Compat Mapper for existing modular-style calls in script.js
           window.firestoreUtils = {
               collection: (d, n) => d.collection(n),
               doc: (d, c, i) => i ? d.collection(c).doc(i) : d, 
               getDocs: (q) => q.get(), 
+              getDoc: async (d) => {
+                  const snap = await d.get();
+                  // Compat fix: Add exists() method if only property exists
+                  if (snap && typeof snap.exists !== 'function') {
+                      const val = snap.exists;
+                      snap.exists = () => val;
+                  }
+                  return snap;
+              },
               setDoc: (d, v) => d.set(v),
               updateDoc: (d, v) => d.update(v),
               deleteDoc: (d) => d.delete(),
@@ -4031,7 +4117,8 @@
       'users': { title: '교직원 현황', desc: '가입 승인 및 회원 정보 관리' },
       'logs': { title: '관리자 로그', desc: '관리자 및 시스템 활동 기록' },
       'user-logs': { title: '사용자 로그', desc: '사용자들의 주요 활동 내역' },
-      'bin': { title: '휴지통', desc: '삭제된 회원 복구 및 영구 삭제' }
+      'bin': { title: '휴지통', desc: '삭제된 회원 복구 및 영구 삭제' },
+      'menus': { title: '메뉴 관리', desc: '메인 메뉴 및 위젯 표시 설정' }
     };
 
     // Update Nav
@@ -4057,6 +4144,7 @@
     if(viewId === 'logs') window.loadAdminLogs();
     if(viewId === 'user-logs') window.loadUserLogs();
     if(viewId === 'bin') window.loadRecycleBin();
+    if(viewId === 'menus') window.renderMenuSettings();
   };
 
   window.initAdminNav = () => {
@@ -4191,6 +4279,7 @@
           'bus': '배차신청',
           'datayard': '자료마당',
           'support': '온학교 e지원',
+          'training': '연수관리',
           'admin': '관리자 페이지'
       };
       
@@ -4803,6 +4892,174 @@
     XLSX.writeFile(wb, fileName);
   };
 
+
+
+  // === 7. Menu & Widget Management ===
+  window.menuSettings = {
+      menus: {
+          'status': true,
+          'account': true,
+          'curriculum': true,
+          'bus': true,
+          'datayard': true,
+          'support': true,
+          'training': true
+      },
+      widgets: {
+          'school-today-widget': true,
+          'notice-widget': true
+      }
+  };
+  
+  window.loadMenuSettings = async () => {
+      // 안전한 폴링 대기 로직 적용
+      const waitForDB = () => {
+          return new Promise(resolve => {
+              const check = () => {
+                  if (window.db && window.firebaseReady) resolve();
+                  else setTimeout(check, 100);
+              };
+              check();
+          });
+      };
+      
+      await waitForDB();
+
+      try {
+          const docRef = firestoreUtils.doc(db, "settings", "menuVisibility");
+          const docSnap = await firestoreUtils.getDoc(docRef);
+          
+          if (docSnap && typeof docSnap.exists === 'function' && docSnap.exists()) {
+              const data = docSnap.data();
+              if(data.menus) window.menuSettings.menus = { ...window.menuSettings.menus, ...data.menus };
+              if(data.widgets) window.menuSettings.widgets = { ...window.menuSettings.widgets, ...data.widgets };
+          }
+          window.applyMenuSettings();
+      } catch (e) {
+          console.error("Failed to load menu settings:", e);
+      }
+  };
+
+  window.applyMenuSettings = () => {
+      // Apply Menus
+      for (const [key, isVisible] of Object.entries(window.menuSettings.menus)) {
+          const btn = document.querySelector(`.nav-item[data-category="${key}"]`);
+          if (btn) {
+              if (isVisible) {
+                  btn.classList.remove('hidden');
+                  // For mobile resizing
+                  btn.style.display = ''; 
+              } else {
+                  btn.classList.add('hidden');
+                  btn.style.setProperty('display', 'none', 'important');
+              }
+          }
+      }
+
+      // Apply Widgets
+      for (const [id, isVisible] of Object.entries(window.menuSettings.widgets)) {
+          const widget = document.getElementById(id);
+          if (widget) {
+              if (isVisible) {
+                  widget.classList.remove('hidden');
+                  widget.style.display = '';
+              } else {
+                  widget.classList.add('hidden');
+                  widget.style.setProperty('display', 'none', 'important');
+              }
+          }
+      }
+      
+      // Re-trigger resize to adjust layout
+      window.dispatchEvent(new Event('resize'));
+  };
+
+  window.renderMenuSettings = () => {
+      const menuContainer = document.getElementById('admin-menu-toggle-list');
+      const widgetContainer = document.getElementById('admin-widget-toggle-list');
+      
+      const menuNames = {
+          'status': '학교현황',
+          'account': '학교계정',
+          'curriculum': '학사일정',
+          'bus': '배차신청',
+          'datayard': '자료마당',
+          'support': '온학교 e지원',
+          'training': '연수관리'
+      };
+      
+      const widgetNames = {
+          'school-today-widget': '오늘의 일정',
+          'notice-widget': '알립니다 (메모/공지)'
+      };
+
+      const renderToggleItem = (type, key, name, isChecked) => {
+          const statusLabel = isChecked ? '공개' : '비공개';
+          const activeClass = isChecked ? 'is-active' : '';
+          
+          return `
+            <div class="menu-toggle-item ${activeClass}" data-key="${key}">
+                <span class="item-name">${name}</span>
+                <div class="toggle-control-group">
+                    <span class="status-text">${statusLabel}</span>
+                    <label class="switch">
+                        <input type="checkbox" onchange="toggleMenuVisibility('${type}', '${key}', this.checked, this)" ${isChecked ? 'checked' : ''}>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+          `;
+      };
+
+      if (menuContainer) {
+          menuContainer.innerHTML = Object.entries(menuNames).map(([key, name]) => {
+              const isChecked = window.menuSettings.menus[key] !== false; 
+              return renderToggleItem('menus', key, name, isChecked);
+          }).join('');
+      }
+
+      if (widgetContainer) {
+           widgetContainer.innerHTML = Object.entries(widgetNames).map(([key, name]) => {
+              const isChecked = window.menuSettings.widgets[key] !== false; 
+              return renderToggleItem('widgets', key, name, isChecked);
+          }).join('');
+      }
+  };
+
+  window.toggleMenuVisibility = (type, key, checked, element) => {
+      // 1. Update Data
+      if (type === 'menus') window.menuSettings.menus[key] = checked;
+      else if (type === 'widgets') window.menuSettings.widgets[key] = checked;
+
+      if(element) {
+          const container = element.closest('.menu-toggle-item');
+          const statusText = container.querySelector('.status-text');
+          
+          if (checked) {
+              container.classList.add('is-active');
+              statusText.textContent = '공개';
+          } else {
+              container.classList.remove('is-active');
+              statusText.textContent = '비공개';
+          }
+      }
+  };
+
+  window.saveMenuSettings = async () => {
+      if(!db) return;
+      if(!confirm("설정을 저장하고 적용하시겠습니까?")) return;
+      
+      try {
+          await firestoreUtils.setDoc(firestoreUtils.doc(db, "settings", "menuVisibility"), window.menuSettings);
+          window.applyMenuSettings();
+          alert("설정이 저장되고 적용되었습니다.");
+          if(window.logAdminAction) window.logAdminAction("메뉴 설정 변경", "메뉴 및 위젯 표시 설정 업데이트");
+      } catch (e) {
+          console.error("Error saving settings:", e);
+          alert("설정 저장 중 오류가 발생했습니다.");
+      }
+  };
+
   // === 8. Robust File Download Helper (Bypasses Browser Previewers) ===
   window.forceDownload = async function(e, url, title) {
     if (e) e.preventDefault();
@@ -4850,4 +5107,80 @@
     window.location.href = downloadUrl;
   };
 
+    // === Tab Switching Logic ===
+    window.switchTab = function(category) {
+        // 1. Hide all main sections
+        const sections = [
+            'status-section', 
+            'shortcut-section', 
+            'datayard-section', 
+            'curriculum-section', 
+            'helppage-section', 
+            'account-section', 
+            'bus-section', 
+            'calendar-section', 
+            'admin-section', 
+            'training-section' 
+        ];
+        
+        sections.forEach(id => {
+            const el = document.getElementById(id);
+            if(el) {
+                el.classList.add('hidden');
+                el.style.display = 'none'; 
+            }
+        });
+
+        // 2. Remove active class from nav items
+        document.querySelectorAll('.nav-item').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        // 3. Show selected section
+        let targetId = '';
+        switch(category) {
+            case 'status': targetId = 'status-section'; break;
+            case 'all': targetId = 'shortcut-section'; break; // Home maps to shortcut section
+            case 'datayard': targetId = 'datayard-section'; break;
+            case 'curriculum': targetId = 'curriculum-section'; break;
+            case 'support': targetId = 'helppage-section'; break; 
+            case 'account': targetId = 'account-section'; break;
+            case 'bus': targetId = 'bus-section'; break;
+            case 'calendar': targetId = 'calendar-section'; break; 
+            case 'admin': targetId = 'admin-section'; break;
+            case 'training': targetId = 'training-section'; break;
+        }
+
+        const targetEl = document.getElementById(targetId);
+        if(targetEl) {
+            targetEl.classList.remove('hidden');
+            targetEl.style.display = 'block';
+            
+            // Lazy Load / Refresh
+            if(category === 'curriculum' && window.renderCurriculum) window.renderCurriculum();
+            if(category === 'calendar' && calendar) calendar.render();
+            if(category === 'training' && window.initTraining) window.initTraining();
+        }
+
+        // 4. Set active nav item
+        const navBtn = document.querySelector(`.nav-item[data-category="${category}"]`);
+        if(navBtn) navBtn.classList.add('active');
+
+        // 5. Update State
+        window.currentCategory = category;
+    };
+
+    // Attach Event Listeners to Nav Items (Ensures all buttons work)
+    document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            // Prevent default just in case
+            const category = btn.dataset.category;
+            if (category) {
+                window.switchTab(category);
+            }
+        });
+    });
+
+    // Load Menu Settings
+    window.loadMenuSettings();
 });

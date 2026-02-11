@@ -1,0 +1,15 @@
+/* Board Modal Styles - Placeholder to prevent 404 */
+/* Actual styles might be in style.css or generated dynamically */
+.author-chips {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+.status-pill-group {
+    display: flex;
+    gap: 10px;
+}
+.color-picker-container {
+    position: relative;
+}

@@ -492,8 +492,8 @@ html .side-site-title {
 
 main {
   flex: 1;
-  margin-top: 140px;
-  height: calc(100vh - 140px);
+  margin-top: 125px;
+  height: calc(100vh - 125px);
   overflow-y: auto;
   padding-top: 0;
   display: block;
@@ -6007,7 +6007,8 @@ body:not(.dark-mode) .curr-row:hover {
     content: '';
     position: absolute;
     bottom: -7px;
-    left: 20%;
+    left: 50%;
+    transform: translateX(-50%);
     border-left: 7px solid transparent;
     border-right: 7px solid transparent;
     border-top: 7px solid #34a853;
@@ -10837,3 +10838,1322 @@ body.dark-mode .btn-cancel-simple {
     background: #334155;
     color: #cbd5e1;
 }
+
+/* ================= Status Table Editable Fixes ================= */
+.status-table th, .status-table td {
+    position: relative; /* For proper stacking context */
+    /* overflow: hidden; Removed to allow resize handle interaction if needed, but input should be contained */
+}
+
+.status-table th .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.status-table .editable-input {
+    width: 100%;
+    min-width: 0; /* Important for narrow columns like 'No' or 'Job' */
+    box-sizing: border-box; 
+    border: 1px solid transparent; 
+    background: transparent;
+    padding: 4px 2px; /* Reduced horizontal padding for narrow cells */
+    font-size: inherit;
+    font-family: inherit;
+    text-align: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+    outline: none;
+    color: inherit;
+}
+
+.status-table .editable-input:hover {
+    border-color: #cbd5e1; 
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.status-table .editable-input:focus {
+    border-color: #3b82f6;
+    background: white;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    z-index: 5; /* Ensure focused input is above other elements */
+}
+
+/* Dark mode support */
+body.dark-mode .status-table .editable-input {
+    color: #e2e8f0;
+}
+body.dark-mode .status-table .editable-input:hover {
+    background: #334155;
+    border-color: #475569;
+}
+body.dark-mode .status-table .editable-input:focus {
+    background: #1e293b;
+    border-color: #3b82f6;
+}
+
+/* Ensure resize handle is clickable and above input */
+.resize-handle {
+    z-index: 20 !important;
+}
+
+/* ================= Datayard Group Edit Actions ================= */
+.group-edit-actions {
+    display: flex;
+    gap: 0.5rem;
+    /* margin-left: 1rem; Removed */
+}
+
+.group-edit-actions button {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #64748b;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+}
+
+.group-edit-actions .edit-group-btn:hover {
+    background: #f0f9ff;
+    color: #0284c7;
+    border-color: #bae6fd;
+    transform: translateY(-1px);
+}
+
+.group-edit-actions .delete-group-btn:hover {
+    background: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca;
+    transform: translateY(-1px);
+}
+
+/* ================= Today Badge & Date Highlight ================= */
+.curr-cell.date-cell {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important; /* Revert to center */
+    gap: 2px !important;
+    padding-top: 0 !important;          /* Remove padding */
+}
+
+.date-number {
+    /* Remove fixed size for normal dates */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: var(--text-main, inherit);
+    background: transparent;
+    transition: all 0.2s ease;
+    /* Font size inherit to respect original */
+    font-size: inherit;
+    font-weight: inherit;
+}
+
+/* Dark Mode Support for Date Number */
+body.dark-mode .date-number {
+    color: inherit;
+}
+
+/* Highlight Circle for Today (Apply size only here) */
+.date-number.today-circle {
+    width: 34px;
+    height: 34px;
+    background: linear-gradient(135deg, #8b5cf6, #4f46e5) !important;
+    color: white !important;
+    font-weight: 800;
+    font-size: 1.15rem; /* Larger font */
+    box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4), 
+                0 0 0 2px rgba(255, 255, 255, 0.2) inset !important; /* Inner glow */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px); /* Slight lift */
+}
+
+/* Fix Badge Position: Float layout adjustment */
+.curr-cell.date-cell {
+    position: relative !important;
+}
+
+.curr-cell.date-cell .today-badge {
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    margin: 0 auto !important;
+    width: fit-content !important;
+    
+    /* Center reference + fixed offset to follow the date number */
+    top: 50% !important; 
+    margin-top: -46px !important;
+    bottom: auto !important;
+    
+    /* High priority layer to float above everything else in the table */
+    z-index: 2000 !important;
+}
+
+/* ================= Segmented Control (Profile Homeroom) ================= */
+.segmented-control-container {
+    display: flex;
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: 10px;
+    width: fit-content;
+    border: 1px solid #e2e8f0;
+}
+
+.segment-btn-custom {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 90px;
+    user-select: none;
+}
+
+.segment-btn-custom:hover {
+    color: #334155;
+    background: rgba(255,255,255,0.5);
+}
+
+.segment-btn-custom.active {
+    background: white;
+    color: #3b82f6; /* Primary Blue */
+    font-weight: 700;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* ================= Training Section Wide Layout ================= */
+.training-container {
+    width: 95%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 10px 20px 20px;
+    background: transparent;
+}
+
+.section-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-main, #1e293b);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+@media (max-width: 768px) {
+    .training-container {
+        width: 100%;
+        padding: 10px;
+    }
+}
+
+/* ================= Modern Training Table Styles ================= */
+.training-table-wrapper {
+    overflow: visible; /* sticky 헤더가 메인 스크롤을 따라가도록 강제 */
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    background: white;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 20px;
+}
+
+.training-table-modern {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+    white-space: nowrap; /* 한 줄 표시 */
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+}
+
+/* Header Styling */
+.training-table-modern thead th {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background-color: #f8fafc !important; /* 배경색 고정 */
+    color: #475569;
+    font-weight: 700;
+    text-align: center !important;
+    padding: 14px 16px;
+    border-bottom: 2px solid #cbd5e1 !important; /* 더 뚜렷한 경계선 */
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+}
+
+/* Cell Styling */
+.training-table-modern tbody td {
+    padding: 10px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+    color: #334155;
+    transition: background-color 0.2s;
+    font-family: inherit; /* 상속 */
+}
+
+.training-table-modern tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.training-table-modern tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+/* Column Specific Styles */
+/* Column Specific Styles - Width handled inline in HTML */
+.col-num { color: #94a3b8; font-size: 0.9em; text-align: center; font-variant-numeric: tabular-nums; }
+.col-category { text-align: center; }
+.col-title { font-weight: 600; color: #1e293b; overflow: hidden; text-overflow: ellipsis; text-align: left; white-space: normal; } /* Allow wrapping */
+.col-target { color: #64748b; font-size: 0.9em; text-align: center; }
+.col-deadline { 
+    color: #d97706; 
+    text-align: center; 
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0;
+}
+.col-manager { text-align: center; color: #475569; }
+.col-link { text-align: left; overflow: hidden; text-overflow: ellipsis; }
+.col-completers { overflow: visible; text-align: left; }
+.col-actions { text-align: center; }
+
+/* Custom Scrollbar for Completers - Removed since wrapping */
+/*.col-completers::-webkit-scrollbar { height: 4px; } ... */
+.col-completers::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+.col-completers::-webkit-scrollbar-track { background: transparent; }
+
+/* Completer Tags in One Line */
+/* Completer List Scroll Container */
+.completer-scroll-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center; /* 수직 중앙 정렬 위함이나 wrap 시에는 줄바꿈 */
+    align-content: flex-start; /* 줄바꿈 시 위쪽부터 채움 */
+    max-height: 80px; /* 약 2.5줄 높이 */
+    overflow-y: auto;
+    padding: 4px;
+    /* Custom Scrollbar inside */
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.completer-scroll-container::-webkit-scrollbar {
+    width: 4px;
+}
+.completer-scroll-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+.completer-scroll-container::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+}
+
+.completer-tag-modern {
+    display: inline-flex;
+    align-items: center;
+    background: #eff6ff;
+    color: #3b82f6;
+    padding: 2px 8px; /* 패딩 약간 축소 */
+    border-radius: 12px;
+    font-size: 0.8rem; /* 폰트 약간 축소 */
+    font-weight: 500;
+    border: 1px solid #dbeafe;
+    white-space: nowrap;
+    height: 24px; /* 높이 고정으로 균일하게 */
+}
+
+.completer-tag-modern .remove-btn {
+    margin-left: 6px;
+    cursor: pointer;
+    opacity: 0.5;
+    font-size: 0.8em;
+    transition: opacity 0.2s;
+}
+.completer-tag-modern .remove-btn:hover { opacity: 1; color: #ef4444; }
+
+/* Note Input Styling */
+.note-input-modern {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid transparent;
+    background: transparent;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    color: #334155;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.note-input-modern:hover {
+    background: #f1f5f9;
+}
+
+.note-input-modern:focus {
+    background: white;
+    border-color: #bfdbfe;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    outline: none;
+}
+
+/* Badge Updates (Inspired by Admin User Status Style) */
+.badge {
+    padding: 5px 14px;
+    border-radius: 50px; /* Perfect Pill Shape */
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1;
+    display: inline-block;
+    letter-spacing: -0.01em;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.badge-essential { 
+    background-color: #fef2f2; 
+    color: #ef4444; 
+    border: 1px solid #fee2e2; 
+}
+
+.badge-optional { 
+    background-color: #eff6ff; 
+    color: #3b82f6; 
+    border: 1px solid #dbeafe; 
+}
+
+.target-badge {
+    padding: 5px 14px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1;
+    display: inline-block;
+    background-color: #f1f5f9;  /* Light slate bg */
+    color: #475569;             /* Slate text */
+    border: 1px solid #e2e8f0;
+    letter-spacing: -0.01em;
+}
+
+/* Specific highlight for '전 교원/직원' often seen in trainings */
+.target-badge {
+    background-color: #f5f3ff; /* Very light violet */
+    color: #6366f1;           /* Indigo text */
+    border-color: #e0e7ff;
+}
+
+/* Completer Tooltip Styles */
+.completer-tooltip-container {
+    position: relative;
+    display: inline-block;
+}
+
+.completer-more-badge {
+    background: #e2e8f0;
+    color: #64748b;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.completer-more-badge:hover {
+    background: #cbd5e1;
+}
+
+.completer-tooltip-content {
+    visibility: hidden;
+    width: 250px;
+    background-color: white;
+    color: #334155;
+    text-align: left;
+    border-radius: 8px;
+    padding: 10px;
+    position: absolute;
+    z-index: 100;
+    bottom: 125%; /* Position above */
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e2e8f0;
+    white-space: normal; /* Allow wrapping inside tooltip */
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.completer-tooltip-content::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #e2e8f0 transparent transparent transparent;
+}
+
+.completer-tooltip-container:hover .completer-tooltip-content {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Tooltip internal tags */
+/* Completer Status Button - Refined & Colorful */
+.btn-completer-status {
+    background: #f0f7ff; /* Very light blue background */
+    color: #2563eb;    /* Professional blue text */
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 7px 16px;
+    border-radius: 8px;
+    border: 1px solid #dbeafe; /* Subtle blue border */
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(37, 99, 235, 0.05); /* Very subtle blue shadow */
+}
+
+.btn-completer-status i.fa-check-circle {
+    color: #3b82f6; 
+    font-size: 1rem;
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
+}
+
+.btn-completer-status:hover {
+    background: #e0f2fe;
+    border-color: #bae6fd;
+    color: #1d4ed8;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
+    transform: translateY(-1px);
+}
+
+.btn-completer-status.expanded {
+    background: #2563eb;
+    color: white;
+    border-color: #1d4ed8;
+    box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+}
+
+.btn-completer-status.expanded i.fa-check-circle {
+    color: white;
+}
+
+.btn-completer-status:active {
+    transform: scale(0.97);
+}
+
+.btn-completer-status.empty {
+    background: #ffffff;
+    color: #94a3b8;
+    border: 1px dashed #cbd5e1;
+    box-shadow: none;
+}
+
+.btn-completer-status.empty:hover {
+    background: #f8fafc;
+    border-style: solid;
+    color: #64748b;
+    transform: none;
+}
+
+.btn-completer-status i {
+    font-size: 0.9em;
+}
+/* Completer Toggle Styles */
+.completer-toggle-content {
+    display: none; /* Hidden by default */
+    margin-top: 8px;
+    padding: 8px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.completer-toggle-content.active {
+    display: block;
+    animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.btn-completer-status .fa-chevron-down {
+    transition: transform 0.2s;
+}
+
+.btn-completer-status.expanded .fa-chevron-down {
+    transform: rotate(180deg);
+}
+
+.completer-tags-wrapper {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    align-items: center;
+    padding: 4px 0;
+}
+
+.completer-tag-modern {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #eef2ff;
+    color: #4f46e5;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border: 1px solid #e0e7ff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.completer-tag-modern .remove-btn {
+    margin-left: 6px;
+    cursor: pointer;
+    opacity: 0.5;
+    font-size: 0.75rem;
+    transition: opacity 0.2s, color 0.2s;
+}
+
+.completer-tag-modern .remove-btn:hover {
+    opacity: 1;
+    color: #ef4444;
+}
+
+/* Training Management Action Buttons (Bus Request Style) */
+.training-action-btns {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.training-action-btns button {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #64748b;
+    transition: all 0.2s;
+}
+
+.training-action-btns .btn-edit:hover {
+    background: #f0f9ff;
+    color: #0284c7;
+    border-color: #bae6fd;
+    transform: translateY(-1px);
+}
+
+.training-action-btns .btn-delete {
+    color: #ef4444; /* Red icon as requested */
+    background: #fef2f2; /* Light red background */
+    border-color: #fecaca;
+}
+
+.training-action-btns .btn-delete:hover {
+    background: #fee2e2;
+    color: #dc2626;
+    border-color: #fca5a5;
+    transform: translateY(-1px);
+}
+
+/* Ensure Note textarea fits one line smoothly */
+.note-input-modern::-webkit-scrollbar {
+    width: 4px;
+}
+.note-input-modern::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+/* Refined Add Completer Button (Calendar Style) */
+.btn-add-completer {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: white;
+    color: #3b82f6;
+    border: 1px solid #e2e8f0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.85rem;
+    padding: 0;
+    vertical-align: middle;
+}
+
+.btn-add-completer:hover {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+    transform: scale(1.1) rotate(90deg); /* Playful rotate on hover */
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+}
+
+.btn-add-completer:active {
+    transform: scale(0.95);
+}
+
+/* Dark Mode Support for the Add Button */
+body.dark-mode .btn-add-completer {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .btn-add-completer:hover {
+    background: #3b82f6;
+    border-color: #3b82f6;
+}
+
+/* Training Table Drag & Drop Styles */
+.col-drag:hover {
+    color: #3b82f6 !important;
+}
+
+.sortable-ghost {
+    opacity: 0.4;
+    background: #eff6ff !important;
+    border: 2px dashed #3b82f6 !important;
+}
+
+body.dark-mode .sortable-ghost {
+    background: #1e3a8a !important;
+    border-color: #60a5fa !important;
+}
+
+/* ================= Menu Management Styles ================= */
+.menu-settings-container {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    border: 1px solid #e2e8f0;
+}
+
+.menu-settings-subtitle {
+    font-size: 1.1rem;
+    color: #1e293b;
+    margin-bottom: 20px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.menu-toggle-item {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.menu-toggle-item.is-active {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+}
+
+.menu-toggle-item .item-name {
+    font-weight: 600;
+    color: #334155;
+    font-size: 1rem;
+}
+
+.menu-toggle-item .toggle-control-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.menu-toggle-item .status-text {
+    color: #94a3b8;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.3s;
+    min-width: 40px;
+    text-align: right;
+}
+
+.menu-toggle-item.is-active .status-text {
+    color: #2563eb;
+    font-weight: 600;
+}
+
+.menu-toggle-item .slider {
+    background-color: #cbd5e1;
+}
+
+.menu-toggle-item.is-active .slider {
+    background-color: #3b82f6;
+}
+
+/* ================= Dark Mode Refinements ================= */
+body.dark-mode .menu-settings-container {
+    background: rgba(30, 41, 59, 0.5);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: none;
+}
+
+body.dark-mode .menu-settings-subtitle {
+    color: #f8fafc;
+}
+
+body.dark-mode .menu-toggle-item {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .menu-toggle-item.is-active {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+body.dark-mode .menu-toggle-item .item-name {
+    color: #e2e8f0;
+}
+
+body.dark-mode .menu-toggle-item .status-text {
+    color: #64748b;
+}
+
+body.dark-mode .menu-toggle-item.is-active .status-text {
+    color: #60a5fa;
+}
+
+/* Training Table Dark Mode */
+body.dark-mode .training-table-wrapper {
+    background: rgba(15, 23, 42, 0.6) !important;
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: none;
+}
+
+body.dark-mode .training-table-modern thead th {
+    background-color: rgba(30, 41, 59, 0.9) !important;
+    color: #94a3b8;
+    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.dark-mode .training-table-modern tbody td {
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+    color: #cbd5e1;
+}
+
+body.dark-mode .training-table-modern tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+body.dark-mode .col-title {
+    color: #f8fafc;
+}
+
+body.dark-mode .col-manager {
+    color: #94a3b8;
+}
+
+body.dark-mode .note-input-modern {
+    color: #cbd5e1;
+}
+
+body.dark-mode .note-input-modern:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .note-input-modern:focus {
+    background: rgba(15, 23, 42, 0.8);
+    border-color: #3b82f6;
+}
+
+/* Completer Chip Buttons */
+.completer-chip-btn {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s;
+    background-color: #f1f5f9;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+}
+
+.completer-chip-btn.is-checked {
+    background-color: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+}
+
+body.dark-mode .completer-chip-btn {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #cbd5e1;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .completer-chip-btn.is-checked {
+    background-color: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+}
+
+body.dark-mode .completer-tag-modern {
+    background: rgba(59, 130, 246, 0.15);
+    color: #93c5fd;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+body.dark-mode .completer-add-btn-sm {
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+    border: 1px dashed rgba(59, 130, 246, 0.4);
+}
+
+body.dark-mode .completer-add-btn-sm:hover {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: #3b82f6;
+}
+
+/* Completer Add Button Small (Base) */
+.completer-add-btn-sm {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px dashed #cbd5e1;
+    border-radius: 6px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+}
+
+.completer-add-btn-sm:hover {
+    background: #e0f2fe;
+    color: #3b82f6;
+    border-color: #3b82f6;
+}
+
+/* Training Management Specific Refinements */
+.segment-box {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.segment-box.active {
+    background: white;
+    color: #ef4444;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+body.dark-mode .segment-box.active {
+    background: #ef4444;
+    color: white;
+}
+
+.target-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.target-card { 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px; 
+    border: 2px solid #e2e8f0;
+    border-radius: 12px; 
+    cursor: pointer;
+    position: relative;
+    background: #fff;
+    transition: all 0.2s;
+}
+
+.target-card:hover {
+    border-color: #94a3b8;
+}
+
+.target-card input {
+    display: none;
+}
+
+.target-card .card-box { 
+    width: 24px;
+    height: 24px;
+    border: 2px solid #cbd5e1;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    position: relative;
+}
+
+.target-card input:checked ~ .card-box {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+}
+
+.target-card input:checked ~ .card-box:after {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 3px;
+    width: 5px;
+    height: 10px; 
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.target-card .card-text {
+    font-size: 0.82rem;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.target-card input:checked ~ .card-text {
+    color: #3b82f6;
+}
+
+.target-card input:checked {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 6px -1px rgba(59,130,246,0.1);
+}
+
+body.dark-mode .target-card {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .target-card:hover {
+    border-color: #3b82f6;
+}
+
+body.dark-mode .target-card .card-text {
+    color: #94a3b8;
+}
+
+body.dark-mode .target-card input:checked ~ .card-text {
+    color: #60a5fa;
+}
+
+/* Training Modern Badges */
+body.dark-mode .badge-essential {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+
+body.dark-mode .badge-optional {
+    background-color: rgba(148, 163, 184, 0.2);
+    color: #94a3b8;
+}
+
+body.dark-mode .badge-ox-o {
+    background-color: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+}
+
+/* Training Management Modal Refinements */
+.training-modal-body {
+    padding: 24px;
+}
+
+.training-form-label {
+    display: block;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    color: #1e293b;
+}
+
+.training-form-label span {
+    color: #ef4444;
+    font-size: 0.8em;
+    margin-left: 2px;
+}
+
+body.dark-mode .training-form-label span {
+    color: #f87171;
+}
+
+.training-input-modern {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background-color: #f8fafc;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+body.dark-mode .training-input-modern {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #f1f5f9;
+}
+
+body.dark-mode .training-input-modern:focus {
+    border-color: #3b82f6;
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.training-segmented-control {
+    display: flex;
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: 8px;
+    width: fit-content;
+}
+
+body.dark-mode .training-segmented-control {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.training-segmented-control input[type="radio"] {
+    display: none;
+}
+
+.segment-btn {
+    display: inline-block;
+}
+
+.segment-box {
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #64748b;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.segment-box.active {
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Specific colors for Category */
+.segment-btn input[value="권장"]:checked ~ .segment-box.active {
+    color: #3b82f6;
+}
+
+.segment-btn input[value="필수"]:checked ~ .segment-box.active {
+    color: #ef4444;
+}
+
+body.dark-mode .segment-box.active {
+    background: rgba(30, 41, 59, 0.8);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .segment-btn input[value="권장"]:checked ~ .segment-box.active {
+    color: #60a5fa;
+}
+
+body.dark-mode .segment-btn input[value="필수"]:checked ~ .segment-box.active {
+    color: #f87171;
+}
+
+/* Direct Input Row */
+.training-direct-input-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    padding: 10px 16px;
+    border-radius: 12px;
+    transition: all 0.2s;
+}
+
+body.dark-mode .training-direct-input-row {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.training-direct-input-row .direct-label {
+    font-weight: 600;
+    color: #1e293b;
+    white-space: nowrap;
+}
+
+body.dark-mode .training-direct-input-row .direct-label {
+    color: #94a3b8;
+}
+
+.training-direct-input-row .direct-field {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 0.95rem;
+    color: inherit;
+}
+
+/* Modal Footer Refinement */
+.training-modal-footer {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 20px;
+    border-top: 1px solid #f1f5f9;
+}
+
+body.dark-mode .training-modal-footer {
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Completer Status Button (Table) Refinement */
+body.dark-mode .btn-completer-status {
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+    border-color: rgba(59, 130, 246, 0.2);
+    box-shadow: none;
+}
+
+body.dark-mode .btn-completer-status:hover {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: #3b82f6;
+    color: #fff;
+}
+
+body.dark-mode .btn-completer-status.empty {
+    background: rgba(255, 255, 255, 0.03);
+    color: #64748b;
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .btn-completer-status.empty:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #94a3b8;
+}
+
+body.dark-mode .completer-toggle-content {
+    background: rgba(15, 23, 42, 0.6);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Helper Utilities used in index.html */
+.mb-24 { margin-bottom: 24px; }
+.mb-30 { margin-bottom: 30px; }
+.flex { display: flex; }
+.flex-1 { flex: 1; }
+.gap-10 { gap: 10px; }
+.gap-12 { gap: 12px; }
+.gap-20 { gap: 20px; }
+.gap-40 { gap: 40px; }
+.items-start { align-items: flex-start; }
+.justify-between { justify-content: space-between; }
+.items-center { align-items: center; }
+.fs-085 { font-size: 0.85rem; }
+.grid { display: grid; }
+.grid-cols-1-2 { grid-template-columns: 1fr 2fr; }
+
+/* Secondary Button Refinement */
+.btn-secondary {
+    padding: 10px 24px;
+    border-radius: 12px;
+    border: 1px solid #cbd5e1;
+    background: white;
+    color: #475569;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+}
+
+body.dark-mode .btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #cbd5e1;
+}
+
+body.dark-mode .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #3b82f6;
+}
+
+/* Modal Content Dark Mode Shadow */
+body.dark-mode .modal-content {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .training-form-label {
+    color: #94a3b8;
+}
+
+/* Completer Modal Specific */
+.completer-modal-content {
+    max-width: 400px;
+}
+
+#completer-list-container {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+body.dark-mode #completer-list-container {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(15, 23, 42, 0.4);
+}
+
+/* Utilities */
+.mb-10 { margin-bottom: 10px; }
+.mt-10 { margin-top: 10px; }
+.text-blue { color: #3b82f6 !important; }
+.text-slate { color: #64748b !important; }
+
+body.dark-mode .text-blue { color: #60a5fa !important; }
+body.dark-mode .text-slate { color: #94a3b8 !important; }
