@@ -9588,9 +9588,9 @@ body.dark-mode .btn-google:hover {
     overflow: visible; 
     box-shadow: none; 
     border: none; 
-    margin: 1rem 0 1rem 300px; /* Added left margin to clear fixed widget */
+    margin: 1rem 0 1rem 350px; /* Fine-tuned from 400px to 350px */
     width: auto;
-    max-width: calc(100% - 320px); /* Ensure it doesn't overflow horizontally */
+    max-width: calc(100% - 370px); /* Resized to match new margin */
 }
 
 /* --- Top Navigation (Replaces Sidebar) --- */
@@ -12157,3 +12157,248 @@ body.dark-mode #completer-list-container {
 
 body.dark-mode .text-blue { color: #60a5fa !important; }
 body.dark-mode .text-slate { color: #94a3b8 !important; }
+
+/* ================= Mobile Optimization for Training Tab ================= */
+@media screen and (max-width: 768px) {
+    /* 1. Hide "Add Training Info" Button */
+    #training-section button[onclick*="openTrainingModal"] {
+        display: none !important;
+    }
+
+    /* 2. Adjust Header Title to fit one line */
+    #training-section .section-title {
+        font-size: 1.1rem !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 10px !important;
+    }
+
+    /* Adjust container padding */
+    #training-section .content-body {
+        padding: 10px !important;
+    }
+
+    /* 3. Hide specified columns in Training Table */
+    .training-table-modern .col-num,
+    .training-table-modern .col-deadline,
+    .training-table-modern .col-manager,
+    .training-table-modern .col-link-info,
+    .training-table-modern .col-note,
+    .training-table-modern .col-manage {
+        display: none !important;
+    }
+
+    /* 4. Flexible Table Text & Layout */
+    .training-table-modern {
+        width: 100% !important;
+        table-layout: fixed !important; /* Enforce fixed width to contain text */
+    }
+
+    .training-table-modern th, 
+    .training-table-modern td {
+        font-size: 0.8rem !important; /* Smaller text */
+        padding: 6px 3px !important;   /* Tighter padding */
+        overflow: hidden; /* Prevent spillover */
+    }
+
+    /* Adjust remaining columns */
+    .training-table-modern .col-drag {
+        width: 25px !important; /* Minimize drag handle width */
+        padding: 0 !important;
+    }
+
+    .training-table-modern .col-category {
+        width: 45px !important; /* Just enough for badge */
+    }
+    
+    .training-table-modern .col-title {
+        width: 35% !important; /* Reduced width */
+        white-space: normal !important; /* Allow wrapping */
+        font-size: 0.8rem !important; /* Smaller font size */
+        line-height: 1.25;
+    }
+
+    .training-table-modern .col-target {
+        width: 45px !important; /* Very narrow */
+        text-align: center;
+    }
+    
+    .training-table-modern .col-completers {
+        width: auto !important; /* Expanded to fill remaining space */
+    }
+
+    /* Optimization for inner elements */
+    .training-table-modern .badge {
+        font-size: 0.7rem !important;
+        padding: 2px 4px !important;
+        display: inline-block;
+        width: 100%; /* Fill cell */
+        text-align: center;
+        box-sizing: border-box;
+    }
+
+    .target-badge {
+        font-size: 0.7rem !important;
+        padding: 1px 3px !important;
+        display: block; /* Stack badges if multiple */
+        margin-bottom: 2px;
+    }
+
+    /* Adjust Status Button Text on Mobile */
+    .btn-completer-status {
+        padding: 4px 2px !important;
+        font-size: 0.75rem !important;
+        width: 100% !important;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 2px;
+    }
+    
+    /* Make the button content simpler */
+    .btn-completer-status i {
+        font-size: 0.7rem !important;
+    }
+    
+    /* Hide specific text if needed or make it very small */
+    /* Example: "이수 완료: 5명" -> "5명" or similar if super tight */
+}
+
+/* ================= Light Mode Section Backgrounds ================= */
+
+/* Training Theme (Applied to Body for Full Coverage) */
+body:not(.dark-mode).bg-theme-training {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%) !important;
+    background-attachment: fixed !important; /* Ensure gradient covers scroll */
+}
+
+/* Admin Theme (Applied to Body for Full Coverage) */
+body:not(.dark-mode).bg-theme-admin {
+    background: linear-gradient(135deg, #fffdf9 0%, #f3e7e9 100%) !important;
+    background-attachment: fixed !important;
+}
+
+/* Enhance Admin Container for Premium Feel */
+body:not(.dark-mode) #admin-section .admin-container {
+    background: rgba(255, 255, 255, 0.6) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07) !important;
+    border-radius: 20px !important;
+    padding: 20px !important;
+}
+
+/* ================= Training Section Dark Mode Refinement ================= */
+body.dark-mode .training-table-wrapper {
+    background: rgba(30, 41, 59, 0.4) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(10px);
+}
+
+body.dark-mode .training-table-modern thead th {
+    background-color: rgba(15, 23, 42, 0.8) !important;
+    color: #f1f5f9 !important;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+body.dark-mode .training-table-modern tbody td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: #f1f5f9 !important;
+}
+
+/* Force high visibility for key columns */
+body.dark-mode .training-table-modern .col-title,
+body.dark-mode td.col-title {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    opacity: 1 !important;
+}
+
+body.dark-mode .training-table-modern .col-num,
+body.dark-mode .training-table-modern .col-manager,
+body.dark-mode .training-table-modern .col-target,
+body.dark-mode .training-table-modern .col-deadline {
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+body.dark-mode .note-input-modern {
+    color: #f1f5f9;
+}
+body.dark-mode .note-input-modern:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+body.dark-mode .note-input-modern:focus {
+    background: rgba(30, 41, 59, 0.8);
+    border-color: #4a90e2;
+}
+
+body.dark-mode .btn-completer-status {
+    background: rgba(37, 99, 235, 0.15);
+    color: #60a5fa;
+    border: 1px solid rgba(37, 99, 235, 0.3);
+}
+body.dark-mode .btn-completer-status:hover {
+    background: rgba(37, 99, 235, 0.25);
+    color: #93c5fd;
+    border-color: rgba(37, 99, 235, 0.5);
+}
+body.dark-mode .btn-completer-status.empty {
+    background: rgba(255, 255, 255, 0.02);
+    color: #64748b;
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+body.dark-mode .btn-completer-status.empty:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #94a3b8;
+    border-style: solid;
+}
+
+body.dark-mode .badge-essential {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+body.dark-mode .badge-optional {
+    background-color: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+body.dark-mode .target-badge {
+    background-color: rgba(139, 92, 246, 0.15);
+    color: #a78bfa;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+body.dark-mode .training-action-btns button {
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #94a3b8;
+}
+body.dark-mode .training-action-btns .btn-edit:hover {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    border-color: #3b82f6;
+}
+body.dark-mode .training-action-btns .btn-delete {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+}
+body.dark-mode .training-action-btns .btn-delete:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border-color: #ef4444;
+}
+
+body.dark-mode .completer-tag-modern {
+    background: rgba(79, 70, 229, 0.15);
+    color: #a5b4fc;
+    border: 1px solid rgba(79, 70, 229, 0.3);
+}
+
+body.dark-mode .completer-toggle-content {
+    background: rgba(15, 23, 42, 0.4);
+    border-color: rgba(255, 255, 255, 0.1);
+}

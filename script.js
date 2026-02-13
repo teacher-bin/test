@@ -2950,7 +2950,7 @@
 
         // 2. Render List
         const categories = [
-            { id: 'edu', label: '교육활동', icon: 'fa-chalkboard-teacher', types: ['edu'] },
+            { id: 'edu', label: '일정', icon: 'fa-chalkboard-teacher', types: ['edu'] },
             { id: 'staff', label: '교직원 복무', icon: 'fa-user-clock', types: ['staff'] },
             { id: 'doc', label: '처리할 공문', icon: 'fa-file-signature', types: ['doc'] }
         ];
@@ -4047,51 +4047,82 @@
           if (!firebase.apps.length) {
               firebase.initializeApp(firebaseConfig);
           }
-          auth = firebase.auth();
-          db = firebase.firestore();
           
-          window.auth = auth;
-          window.db = db;
-          
-          // Compat Mapper for existing modular-style calls in script.js
-          // Compat Mapper for existing modular-style calls in script.js
-          window.firestoreUtils = {
-              collection: (d, n) => d.collection(n),
-              doc: (d, c, i) => i ? d.collection(c).doc(i) : d, 
-              getDocs: (q) => q.get(), 
-              getDoc: async (d) => {
-                  const snap = await d.get();
-                  // Compat fix: Add exists() method if only property exists
-                  if (snap && typeof snap.exists !== 'function') {
-                      const val = snap.exists;
-                      snap.exists = () => val;
-                  }
-                  return snap;
-              },
-              setDoc: (d, v) => d.set(v),
-              updateDoc: (d, v) => d.update(v),
-              deleteDoc: (d) => d.delete(),
+          // CRITICAL: If modular Firebase is already present, DO NOT overwrite it.
+          // Instead, polyfill the compat methods (.collection) onto the modular instance.
+          if (window.db && window.firestoreUtils && !window.db.collection) {
+              console.log("Modular Firebase detected. Adding compatibility layer...");
+              const mDb = window.db;
+              const mUtils = window.firestoreUtils;
               
-              // Helper functions returning constraint objects
-              orderBy: (field, dir) => ({ type: 'orderBy', field, dir }),
-              limit: (n) => ({ type: 'limit', val: n }),
-              where: (field, op, val) => ({ type: 'where', field, op, val }),
-              
-              // Query function applies constraints to the collection/query object
-              query: (q, ...args) => {
-                  let queryRef = q;
-                  args.forEach(arg => {
-                      if (arg.type === 'orderBy') queryRef = queryRef.orderBy(arg.field, arg.dir);
-                      else if (arg.type === 'limit') queryRef = queryRef.limit(arg.val);
-                      else if (arg.type === 'where') queryRef = queryRef.where(arg.field, arg.op, arg.val);
+              // Polyfill .collection for modular db
+              window.db.collection = function(name) {
+                  const collRef = mUtils.collection(mDb, name);
+                  const wrapQuery = (q) => ({
+                      where: (f, o, v) => wrapQuery(mUtils.query(q, mUtils.where(f, o, v))),
+                      orderBy: (f, d) => wrapQuery(mUtils.query(q, mUtils.orderBy(f, d))),
+                      limit: (n) => wrapQuery(mUtils.query(q, mUtils.limit(n))),
+                      get: () => mUtils.getDocs(q),
+                      onSnapshot: (cb) => mUtils.onSnapshot(q, cb)
                   });
-                  return queryRef;
-              },
-              
-              onSnapshot: (q, cb) => q.onSnapshot(cb)
-          };
+
+                  return {
+                      ...wrapQuery(collRef),
+                      doc: (id) => {
+                          const docRef = mUtils.doc(mDb, name, id);
+                          return {
+                              get: () => mUtils.getDoc(docRef),
+                              set: (v) => mUtils.setDoc(docRef, v),
+                              update: (v) => mUtils.updateDoc(docRef, v),
+                              delete: () => mUtils.deleteDoc(docRef),
+                              onSnapshot: (cb) => mUtils.onSnapshot(docRef, cb)
+                          };
+                      },
+                      add: (v) => mUtils.addDoc(collRef, v)
+                  };
+              };
+          } else if (!window.db) {
+              // Standard Compat Init (only if no modular)
+              window.auth = firebase.auth();
+              window.db = firebase.firestore();
+          }
+
+          if (!window.firestoreUtils) {
+              // Compat Mapper for legacy scripts if modular utils are missing
+              window.firestoreUtils = {
+                  collection: (d, n) => d.collection(n),
+                  doc: (d, c, i) => i ? d.collection(c).doc(i) : d, 
+                  getDocs: (q) => q.get(), 
+                  getDoc: async (d) => {
+                      const snap = await d.get();
+                      if (snap && typeof snap.exists !== 'function') {
+                          const val = snap.exists;
+                          snap.exists = () => val;
+                      }
+                      return snap;
+                  },
+                  setDoc: (d, v) => d.set(v),
+                  updateDoc: (d, v) => d.update(v),
+                  deleteDoc: (d) => d.delete(),
+                  orderBy: (field, dir) => ({ type: 'orderBy', field, dir }),
+                  limit: (n) => ({ type: 'limit', val: n }),
+                  where: (field, op, val) => ({ type: 'where', field, op, val }),
+                  query: (q, ...args) => {
+                      let queryRef = q;
+                      args.forEach(arg => {
+                          if (arg.type === 'orderBy') queryRef = queryRef.orderBy(arg.field, arg.dir);
+                          else if (arg.type === 'limit') queryRef = queryRef.limit(arg.val);
+                          else if (arg.type === 'where') queryRef = queryRef.where(arg.field, arg.op, arg.val);
+                      });
+                      return queryRef;
+                  },
+                  onSnapshot: (q, cb) => q.onSnapshot(cb)
+              };
+          }
           
-          // Re-trigger init functions that depend on db
+          auth = window.auth;
+          db = window.db;
+          
           window.dispatchEvent(new Event('firebase-ready'));
       }
   } catch (e) {
@@ -4849,8 +4880,8 @@
     const body = document.getElementById('stats-table-body');
     if(!head || !body) return;
 
-    head.innerHTML = `<tr>${statsData.map(d => `<th>${d.label}</th>`).join('')}</tr>`;
-    body.innerHTML = `<tr>${statsData.map(d => `<td>${d.count}</td>`).join('')}</tr>`;
+    head.innerHTML = `<tr>${statsData.map(d => `<th style="text-align: center;">${d.label}</th>`).join('')}</tr>`;
+    body.innerHTML = `<tr>${statsData.map(d => `<td style="text-align: center;">${d.count}</td>`).join('')}</tr>`;
   }
 
   window.updateStatsPeriod = function(period, btn) {
@@ -4894,171 +4925,6 @@
 
 
 
-  // === 7. Menu & Widget Management ===
-  window.menuSettings = {
-      menus: {
-          'status': true,
-          'account': true,
-          'curriculum': true,
-          'bus': true,
-          'datayard': true,
-          'support': true,
-          'training': true
-      },
-      widgets: {
-          'school-today-widget': true,
-          'notice-widget': true
-      }
-  };
-  
-  window.loadMenuSettings = async () => {
-      // 안전한 폴링 대기 로직 적용
-      const waitForDB = () => {
-          return new Promise(resolve => {
-              const check = () => {
-                  if (window.db && window.firebaseReady) resolve();
-                  else setTimeout(check, 100);
-              };
-              check();
-          });
-      };
-      
-      await waitForDB();
-
-      try {
-          const docRef = firestoreUtils.doc(db, "settings", "menuVisibility");
-          const docSnap = await firestoreUtils.getDoc(docRef);
-          
-          if (docSnap && typeof docSnap.exists === 'function' && docSnap.exists()) {
-              const data = docSnap.data();
-              if(data.menus) window.menuSettings.menus = { ...window.menuSettings.menus, ...data.menus };
-              if(data.widgets) window.menuSettings.widgets = { ...window.menuSettings.widgets, ...data.widgets };
-          }
-          window.applyMenuSettings();
-      } catch (e) {
-          console.error("Failed to load menu settings:", e);
-      }
-  };
-
-  window.applyMenuSettings = () => {
-      // Apply Menus
-      for (const [key, isVisible] of Object.entries(window.menuSettings.menus)) {
-          const btn = document.querySelector(`.nav-item[data-category="${key}"]`);
-          if (btn) {
-              if (isVisible) {
-                  btn.classList.remove('hidden');
-                  // For mobile resizing
-                  btn.style.display = ''; 
-              } else {
-                  btn.classList.add('hidden');
-                  btn.style.setProperty('display', 'none', 'important');
-              }
-          }
-      }
-
-      // Apply Widgets
-      for (const [id, isVisible] of Object.entries(window.menuSettings.widgets)) {
-          const widget = document.getElementById(id);
-          if (widget) {
-              if (isVisible) {
-                  widget.classList.remove('hidden');
-                  widget.style.display = '';
-              } else {
-                  widget.classList.add('hidden');
-                  widget.style.setProperty('display', 'none', 'important');
-              }
-          }
-      }
-      
-      // Re-trigger resize to adjust layout
-      window.dispatchEvent(new Event('resize'));
-  };
-
-  window.renderMenuSettings = () => {
-      const menuContainer = document.getElementById('admin-menu-toggle-list');
-      const widgetContainer = document.getElementById('admin-widget-toggle-list');
-      
-      const menuNames = {
-          'status': '학교현황',
-          'account': '학교계정',
-          'curriculum': '학사일정',
-          'bus': '배차신청',
-          'datayard': '자료마당',
-          'support': '온학교 e지원',
-          'training': '연수관리'
-      };
-      
-      const widgetNames = {
-          'school-today-widget': '오늘의 일정',
-          'notice-widget': '알립니다 (메모/공지)'
-      };
-
-      const renderToggleItem = (type, key, name, isChecked) => {
-          const statusLabel = isChecked ? '공개' : '비공개';
-          const activeClass = isChecked ? 'is-active' : '';
-          
-          return `
-            <div class="menu-toggle-item ${activeClass}" data-key="${key}">
-                <span class="item-name">${name}</span>
-                <div class="toggle-control-group">
-                    <span class="status-text">${statusLabel}</span>
-                    <label class="switch">
-                        <input type="checkbox" onchange="toggleMenuVisibility('${type}', '${key}', this.checked, this)" ${isChecked ? 'checked' : ''}>
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-            </div>
-          `;
-      };
-
-      if (menuContainer) {
-          menuContainer.innerHTML = Object.entries(menuNames).map(([key, name]) => {
-              const isChecked = window.menuSettings.menus[key] !== false; 
-              return renderToggleItem('menus', key, name, isChecked);
-          }).join('');
-      }
-
-      if (widgetContainer) {
-           widgetContainer.innerHTML = Object.entries(widgetNames).map(([key, name]) => {
-              const isChecked = window.menuSettings.widgets[key] !== false; 
-              return renderToggleItem('widgets', key, name, isChecked);
-          }).join('');
-      }
-  };
-
-  window.toggleMenuVisibility = (type, key, checked, element) => {
-      // 1. Update Data
-      if (type === 'menus') window.menuSettings.menus[key] = checked;
-      else if (type === 'widgets') window.menuSettings.widgets[key] = checked;
-
-      if(element) {
-          const container = element.closest('.menu-toggle-item');
-          const statusText = container.querySelector('.status-text');
-          
-          if (checked) {
-              container.classList.add('is-active');
-              statusText.textContent = '공개';
-          } else {
-              container.classList.remove('is-active');
-              statusText.textContent = '비공개';
-          }
-      }
-  };
-
-  window.saveMenuSettings = async () => {
-      if(!db) return;
-      if(!confirm("설정을 저장하고 적용하시겠습니까?")) return;
-      
-      try {
-          await firestoreUtils.setDoc(firestoreUtils.doc(db, "settings", "menuVisibility"), window.menuSettings);
-          window.applyMenuSettings();
-          alert("설정이 저장되고 적용되었습니다.");
-          if(window.logAdminAction) window.logAdminAction("메뉴 설정 변경", "메뉴 및 위젯 표시 설정 업데이트");
-      } catch (e) {
-          console.error("Error saving settings:", e);
-          alert("설정 저장 중 오류가 발생했습니다.");
-      }
-  };
 
   // === 8. Robust File Download Helper (Bypasses Browser Previewers) ===
   window.forceDownload = async function(e, url, title) {
@@ -5168,6 +5034,11 @@
 
         // 5. Update State
         window.currentCategory = category;
+
+        // 6. Update Body Background Theme (for full-page background)
+        document.body.classList.remove('bg-theme-training', 'bg-theme-admin');
+        if (category === 'training') document.body.classList.add('bg-theme-training');
+        if (category === 'admin') document.body.classList.add('bg-theme-admin');
     };
 
     // Attach Event Listeners to Nav Items (Ensures all buttons work)
@@ -5181,6 +5052,272 @@
         });
     });
 
-    // Load Menu Settings
-    window.loadMenuSettings();
+    // ================= Mobile Swipe Navigation =================
+    const mainContainer = document.querySelector('main');
+    let touchStartX = 0;
+    let touchStartY = 0;
+    const minSwipeDistance = 50; 
+
+    if (mainContainer) {
+        mainContainer.addEventListener('touchstart', (e) => {
+            if (e.changedTouches && e.changedTouches.length > 0) {
+                touchStartX = e.changedTouches[0].screenX;
+                touchStartY = e.changedTouches[0].screenY;
+            }
+        }, {passive: true});
+
+        mainContainer.addEventListener('touchend', (e) => {
+            // Only active on mobile view
+            if (window.innerWidth > 768) return;
+
+            if (!e.changedTouches || e.changedTouches.length === 0) return;
+
+            const touchEndX = e.changedTouches[0].screenX;
+            const touchEndY = e.changedTouches[0].screenY;
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
+
+            // 1. Ignore if vertical scroll is dominant
+            if (Math.abs(diffX) < Math.abs(diffY)) return;
+
+            // 2. Ignore short swipes
+            if (Math.abs(diffX) < minSwipeDistance) return;
+
+            // 3. Ignore if swiping on a horizontally scrollable element
+            let target = e.target;
+            let isScrollable = false;
+            
+            // Traverse up to find scrollable parent
+            while (target && target !== mainContainer && target !== document.body) {
+                // Check if element is scrollable
+                if (target.scrollWidth > target.clientWidth) {
+                     const style = window.getComputedStyle(target);
+                     if (style.overflowX === 'auto' || style.overflowX === 'scroll') {
+                         isScrollable = true;
+                         break;
+                     }
+                }
+                target = target.parentElement;
+            }
+            if (isScrollable) return;
+
+            // 4. Navigate Tabs (Find visible nav items)
+            const navItems = Array.from(document.querySelectorAll('.nav-item'));
+            const contentItems = navItems.filter(btn => !btn.classList.contains('hidden') && btn.style.display !== 'none');
+            
+            const activeBtn = document.querySelector('.nav-item.active');
+            if (!activeBtn) return;
+
+            // Find index in the *filtered* visible list
+            const currentIndex = contentItems.indexOf(activeBtn);
+            if (currentIndex === -1) return;
+
+            if (diffX < 0) {
+                // Swipe Left -> Go Next (Right Tab)
+                if (currentIndex < contentItems.length - 1) {
+                    const nextBtn = contentItems[currentIndex + 1];
+                    nextBtn.click();
+                }
+            } else {
+                // Swipe Right -> Go Prev (Left Tab)
+                if (currentIndex > 0) {
+                    const prevBtn = contentItems[currentIndex - 1];
+                    prevBtn.click();
+                }
+            }
+        }, {passive: true});
+    }
+
 });
+
+// === 7. Menu & Widget Management (Global Scope for Timing) ===
+window.menuSettings = {
+    menus: {
+        'status': true,
+        'account': true,
+        'curriculum': true,
+        'bus': true,
+        'datayard': true,
+        'support': true,
+        'training': true
+    },
+    widgets: {
+        'school-today-widget': true,
+        'notice-widget': true
+    }
+};
+
+let menuSettingsUnsubscribe = null;
+
+window.loadMenuSettings = async () => {
+    // 안전한 폴링 대기 로직 적용
+    const waitForDB = () => {
+        return new Promise(resolve => {
+            const check = () => {
+                if (window.db && window.firebaseReady && window.firestoreUtils) resolve();
+                else setTimeout(check, 100);
+            };
+            check();
+        });
+    };
+    
+    await waitForDB();
+
+    const db = window.db;
+    const firestoreUtils = window.firestoreUtils;
+    if (!db || !firestoreUtils) return;
+
+    // 이미 리스너가 실행 중이면 중복 실행 방지
+    if (menuSettingsUnsubscribe) return;
+
+    try {
+        const docRef = firestoreUtils.doc(db, "menu_visibility", "current");
+        
+        // 실시간 리스너 적용 (모든 유저에게 즉시 반영되도록)
+        menuSettingsUnsubscribe = firestoreUtils.onSnapshot(docRef, (docSnap) => {
+            console.log("Menu settings sync received");
+            if (docSnap && typeof docSnap.exists === 'function' && docSnap.exists()) {
+                const data = docSnap.data();
+                if(data.menus) window.menuSettings.menus = { ...window.menuSettings.menus, ...data.menus };
+                if(data.widgets) window.menuSettings.widgets = { ...window.menuSettings.widgets, ...data.widgets };
+                console.log("Applied synced menu settings:", window.menuSettings);
+            } else {
+                console.log("No remote menu settings found, using defaults.");
+            }
+            window.applyMenuSettings();
+        }, (err) => {
+            console.error("Firestore menu settings listener error:", err);
+            // 권한 문제 등이 발생하더라도 기본값으로 UI 적용
+            window.applyMenuSettings();
+        });
+    } catch (e) {
+        console.error("Failed to initialize menu settings listener:", e);
+        window.applyMenuSettings();
+    }
+};
+
+window.applyMenuSettings = () => {
+    console.log("Applying Menu Settings UI...");
+    // Apply Menus
+    for (const [key, isVisible] of Object.entries(window.menuSettings.menus)) {
+        const btn = document.querySelector(`.nav-item[data-category="${key}"]`);
+        if (btn) {
+            if (isVisible) {
+                btn.classList.remove('hidden');
+                btn.style.display = ''; 
+            } else {
+                btn.classList.add('hidden');
+                btn.style.setProperty('display', 'none', 'important');
+            }
+        }
+    }
+
+    // Apply Widgets
+    for (const [id, isVisible] of Object.entries(window.menuSettings.widgets)) {
+        const widget = document.getElementById(id);
+        if (widget) {
+            if (isVisible) {
+                widget.classList.remove('hidden');
+                widget.style.display = '';
+            } else {
+                widget.classList.add('hidden');
+                widget.style.setProperty('display', 'none', 'important');
+            }
+        }
+    }
+    
+    // Re-trigger resize to adjust layout
+    window.dispatchEvent(new Event('resize'));
+};
+
+window.renderMenuSettings = () => {
+    const menuContainer = document.getElementById('admin-menu-toggle-list');
+    const widgetContainer = document.getElementById('admin-widget-toggle-list');
+    
+    const menuNames = {
+        'status': '학교현황',
+        'account': '학교계정',
+        'curriculum': '학사일정',
+        'bus': '배차신청',
+        'datayard': '자료마당',
+        'support': '온학교 e지원',
+        'training': '연수관리'
+    };
+    
+    const widgetNames = {
+        'school-today-widget': '오늘의 일정',
+        'notice-widget': '알립니다 (메모/공지)'
+    };
+
+    const renderToggleItem = (type, key, name, isChecked) => {
+        const statusLabel = isChecked ? '공개' : '비공개';
+        const activeClass = isChecked ? 'is-active' : '';
+        
+        return `
+          <div class="menu-toggle-item ${activeClass}" data-key="${key}">
+              <span class="item-name">${name}</span>
+              <div class="toggle-control-group">
+                  <span class="status-text">${statusLabel}</span>
+                  <label class="switch">
+                      <input type="checkbox" onchange="toggleMenuVisibility('${type}', '${key}', this.checked, this)" ${isChecked ? 'checked' : ''}>
+                      <span class="slider round"></span>
+                  </label>
+              </div>
+          </div>
+        `;
+    };
+
+    if (menuContainer) {
+        menuContainer.innerHTML = Object.entries(menuNames).map(([key, name]) => {
+            const isChecked = window.menuSettings.menus[key] !== false; 
+            return renderToggleItem('menus', key, name, isChecked);
+        }).join('');
+    }
+
+    if (widgetContainer) {
+         widgetContainer.innerHTML = Object.entries(widgetNames).map(([key, name]) => {
+            const isChecked = window.menuSettings.widgets[key] !== false; 
+            return renderToggleItem('widgets', key, name, isChecked);
+        }).join('');
+    }
+};
+
+window.toggleMenuVisibility = (type, key, checked, element) => {
+    if (type === 'menus') window.menuSettings.menus[key] = checked;
+    else if (type === 'widgets') window.menuSettings.widgets[key] = checked;
+
+    if(element) {
+        const container = element.closest('.menu-toggle-item');
+        const statusText = container.querySelector('.status-text');
+        
+        if (checked) {
+            container.classList.add('is-active');
+            statusText.textContent = '공개';
+        } else {
+            container.classList.remove('is-active');
+            statusText.textContent = '비공개';
+        }
+    }
+};
+
+window.saveMenuSettings = async () => {
+    const db = window.db;
+    const firestoreUtils = window.firestoreUtils;
+    if(!db || !firestoreUtils) return;
+    if(!confirm("설정을 저장하고 모든 사용자에게 즉시 적용하시겠습니까?")) return;
+    
+    try {
+        // 컬렉션 명을 settings에서 menu_visibility로 변경하여 권한 이슈 회피 시도
+        await firestoreUtils.setDoc(firestoreUtils.doc(db, "menu_visibility", "current"), window.menuSettings);
+        // onSnapshot에 의해 applyMenuSettings가 자동으로 호출되겠지만, 즉각적인 피드백을 위해 한 번 더 호출 가능
+        window.applyMenuSettings();
+        alert("설정이 저장되었습니다. 모든 사용자의 화면에 즉시 반영됩니다.");
+        if(window.logAdminAction) window.logAdminAction("메뉴 설정 변경", "메뉴 및 위젯 표시 설정 업데이트 (Global)");
+    } catch (e) {
+        console.error("Error saving settings:", e);
+        alert("설정 저장 중 오류가 발생했습니다. 권한 문제일 수 있습니다.");
+    }
+};
+
+// Initial Call
+window.loadMenuSettings();

@@ -889,7 +889,7 @@
                 <div class="th th-date">날짜</div>
                 <div class="th th-day">요일</div>
                 <div class="th th-life">특별일</div>
-                <div class="th th-edu">교육활동</div>
+                <div class="th th-edu">일정</div>
                 <div class="th th-staff">교직원 복무</div>
                 <div class="th th-doc">처리할 공문</div>
               </div>
@@ -921,7 +921,7 @@
               <div class="type-cards">
                 <div class="type-card" data-type="edu">
                   <i class="fas fa-chalkboard-teacher"></i>
-                  <span>교육활동</span>
+                  <span>일정</span>
                 </div>
                 <div class="type-card" data-type="staff">
                   <i class="fas fa-user-clock"></i>
@@ -945,7 +945,7 @@
 
               <div class="form-header-bar">
                 <span id="curr-selected-type-badge" class="badge"
-                  >교육활동</span
+                  >일정</span
                 >
                 <button type="button" id="curr-back-type-btn" class="btn-text">
                   유형 변경
@@ -1056,17 +1056,17 @@
               <table class="training-table-modern" id="training-table" style="table-layout: fixed; width: 100%;">
                   <thead>
                       <tr>
-                          <th style="width:40px;"></th>
-                          <th style="width:50px; cursor:pointer;" onclick="window.sortTrainings('date')">번호 <i class="fas fa-sort"></i></th>
-                          <th style="width:70px; cursor:pointer;" onclick="window.sortTrainings('category')">구분 <i class="fas fa-sort"></i></th>
-                          <th style="width:240px; cursor:pointer;" onclick="window.sortTrainings('title')">연수명 <i class="fas fa-sort"></i></th>
-                          <th style="width:90px; cursor:pointer;" onclick="window.sortTrainings('target')">연수대상 <i class="fas fa-sort"></i></th>
-                          <th style="width:80px; cursor:pointer;" onclick="window.sortTrainings('deadline')">기한 <i class="fas fa-sort"></i></th>
-                          <th style="width:70px; cursor:pointer;" onclick="window.sortTrainings('manager')">담당자 <i class="fas fa-sort"></i></th>
-                          <th style="width:260px;">이수자 명단</th>
-                          <th style="width:140px;">연수 정보</th>
-                          <th style="width:120px;">비고</th>
-                          <th style="width:100px;">관리</th>
+                          <th class="col-drag" style="width:40px;"></th>
+                          <th class="col-num" style="width:50px; cursor:pointer;" onclick="window.sortTrainings('date')">번호 <i class="fas fa-sort"></i></th>
+                          <th class="col-category" style="width:70px; cursor:pointer;" onclick="window.sortTrainings('category')">구분 <i class="fas fa-sort"></i></th>
+                          <th class="col-title" style="width:240px; cursor:pointer;" onclick="window.sortTrainings('title')">연수명 <i class="fas fa-sort"></i></th>
+                          <th class="col-target" style="width:90px; cursor:pointer;" onclick="window.sortTrainings('target')">연수대상 <i class="fas fa-sort"></i></th>
+                          <th class="col-deadline" style="width:80px; cursor:pointer;" onclick="window.sortTrainings('deadline')">기한 <i class="fas fa-sort"></i></th>
+                          <th class="col-manager" style="width:70px; cursor:pointer;" onclick="window.sortTrainings('manager')">담당자 <i class="fas fa-sort"></i></th>
+                          <th class="col-completers" style="width:260px;">이수자 명단</th>
+                          <th class="col-link-info" style="width:140px;">연수 정보</th>
+                          <th class="col-note" style="width:120px;">비고</th>
+                          <th class="col-manage" style="width:100px;">관리</th>
                       </tr>
                   </thead>
                   <tbody id="training-list">
@@ -2175,7 +2175,7 @@
     <!-- Firebase SDK & Config -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-      import { getFirestore, collection, getDocs, getDoc, setDoc, addDoc, doc, deleteDoc, query, onSnapshot, updateDoc, orderBy, where } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+      import { getFirestore, collection, getDocs, getDoc, setDoc, addDoc, doc, deleteDoc, query, onSnapshot, updateDoc, orderBy, where, limit } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
       import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
       import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 
@@ -2194,7 +2194,7 @@
       window.auth = getAuth(app);
       
       // Export utils for legacy scripts
-      window.firestoreUtils = { collection, getDocs, getDoc, setDoc, addDoc, doc, deleteDoc, query, onSnapshot, updateDoc, orderBy, where };
+      window.firestoreUtils = { collection, getDocs, getDoc, setDoc, addDoc, doc, deleteDoc, query, onSnapshot, updateDoc, orderBy, where, limit };
       window.storageUtils = { ref, uploadBytes, getDownloadURL, deleteObject };
       
       console.log("Firebase initialized successfully");
@@ -2392,6 +2392,9 @@
                   window.dispatchEvent(new CustomEvent('user-role-updated', { detail: { role: userData.role || 'user' } }));
 
                   window.dispatchEvent(new Event('resize'));
+                  
+                  // Load global menu settings once authenticated
+                  if(window.loadMenuSettings) window.loadMenuSettings();
               } else {
                   // Pending -> Show Error & Logout
                   console.log("User pending.");
