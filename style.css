@@ -912,6 +912,33 @@ footer {
   display: none !important;
 }
 
+/* Source Toggle for Admin Editing Shortcuts */
+.shortcut-source-toggle {
+  display: flex;
+  background: var(--bg-color);
+  padding: 3px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  margin-right: 0.5rem;
+  align-items: center;
+}
+
+.source-btn {
+  padding: 0.3rem 0.8rem;
+  font-size: 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.source-btn.active {
+  background: var(--primary-color);
+  color: white;
+  font-weight: 700;
+}
+
 .shortcut-controls button {
   display: flex;
   align-items: center;
@@ -4672,12 +4699,11 @@ body.hide-widget #curriculum-section {
   align-items: center;
   flex-wrap: wrap;
   gap: 0.8rem;
-  margin-bottom: 0.3rem;
-  background: white;
-  padding: 0.5rem 1rem;
-  border-radius: 1rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-  border: 1px solid #f1f5f9;
+  margin-bottom: 0.8rem;
+  background: transparent;
+  padding: 0.5rem 0;
+  box-shadow: none;
+  border: none;
 }
 
 .curriculum-title-group {
@@ -4796,6 +4822,17 @@ body.hide-widget #curriculum-section {
     border-color: #1e40af;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(30, 64, 175, 0.1);
+}
+
+.export-btn.google {
+    color: #4285f4; /* Google Blue */
+}
+
+.export-btn.google:hover {
+    background: #f8faff;
+    border-color: #4285f4;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(66, 133, 244, 0.1);
 }
 
 
@@ -6970,12 +7007,12 @@ body.dark-mode .bus-table-wrapper {
 }
 
 body.dark-mode .curriculum-header-area {
-  background: rgba(30, 41, 59, 0.3) !important;
-  backdrop-filter: blur(15px) !important;
-  -webkit-backdrop-filter: blur(15px) !important;
-  border: 1px solid rgba(148, 163, 184, 0.1) !important;
-  border-radius: 16px !important;
-  padding: 1.5rem !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0.5rem 0 !important;
   margin-bottom: 1.5rem !important;
 }
 
@@ -7081,6 +7118,17 @@ body.dark-mode .export-btn.hwp:hover {
   border-color: #3b82f6 !important;
   color: #93c5fd !important;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
+}
+
+body.dark-mode .export-btn.google {
+  color: #60a5fa !important;
+}
+
+body.dark-mode .export-btn.google:hover {
+  background: rgba(66, 133, 244, 0.3) !important;
+  border-color: #4285f4 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(66, 133, 244, 0.4) !important;
 }
 
 /* 추가 버튼 (일정 추가 등) */
@@ -12401,4 +12449,559 @@ body.dark-mode .completer-tag-modern {
 body.dark-mode .completer-toggle-content {
     background: rgba(15, 23, 42, 0.4);
     border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ================= Multi-Select Dropdown Component ================= */
+.multi-select-container {
+  position: relative;
+  width: 100%;
+}
+
+.multi-select-trigger {
+  width: 100%;
+  min-height: 45px;
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+body.dark-mode .multi-select-trigger {
+  background: #0f172a;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
+/* Specific styling for Login/Register forms in index.html */
+#login-container .multi-select-trigger {
+  height: 38px;
+  min-height: 38px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  background: #f9fafb;
+}
+
+.multi-select-trigger:hover {
+  border-color: #3b82f6;
+}
+
+.selected-items-text {
+  font-size: 0.95rem;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
+}
+
+body.dark-mode .selected-items-text {
+  color: #f1f5f9;
+}
+
+#login-container .selected-items-text {
+  font-size: 0.85rem;
+}
+
+.multi-select-trigger i {
+  color: #94a3b8;
+  font-size: 0.8rem;
+  transition: transform 0.2s;
+}
+
+.multi-select-container.active .multi-select-trigger i {
+  transform: rotate(180deg);
+}
+
+.multi-select-popover {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  width: 100%;
+  max-height: 250px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  z-index: 11000;
+  display: none;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+body.dark-mode .multi-select-popover {
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+}
+
+.multi-select-container.active .multi-select-popover {
+  display: block;
+  animation: slideDownFade 0.2s ease-out;
+}
+
+.multi-select-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.multi-select-option:hover {
+  background: #f1f5f9;
+}
+
+body.dark-mode .multi-select-option:hover {
+  background: #334155;
+}
+
+.multi-select-option input[type="checkbox"] {
+  width: 18px !important;
+  height: 18px !important;
+  cursor: pointer;
+  margin: 0 !important;
+  flex-shrink: 0;
+}
+
+.multi-select-option span {
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+body.dark-mode .multi-select-option span {
+  color: #cbd5e1;
+}
+
+#login-container .multi-select-option span {
+  font-size: 0.85rem;
+}
+
+/* User Status Badges for 담당업무 */
+.badge-work-tag {
+  display: inline-block;
+  padding: 2px 6px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #475569;
+  margin: 1px;
+}
+
+body.dark-mode .badge-work-tag {
+  background: #334155;
+  border-color: #475569;
+  color: #cbd5e1;
+}
+
+/* Adjust Admin Table Layout for extra column */
+.admin-table th, .admin-table td {
+  font-size: 0.85rem;
+  padding: 10px 8px;
+}
+
+/* Animation */
+@keyframes slideDownFade {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ================= Multi-Select Mini Variation & Doc Bulk Row ================= */
+.curr-doc-bulk-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+body.dark-mode .curr-doc-bulk-row {
+  background: rgba(30, 41, 59, 0.4);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.doc-bulk-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+
+.mini-multi-select .multi-select-trigger {
+  height: 32px !important;
+  min-height: 32px !important;
+  padding: 0 10px !important;
+  font-size: 0.85rem !important;
+  border-radius: 8px !important;
+}
+
+.mini-multi-select .selected-items-text {
+  font-size: 0.8rem !important;
+}
+
+.mini-multi-select .multi-select-popover {
+  max-height: 220px !important;
+  width: 180px !important;
+  z-index: 10001 !important;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
+}
+
+/* Ensure popover is not clipped by modal boundaries */
+#currModal .modal-content {
+  overflow: visible !important;
+}
+
+#currModal .modal-body {
+  overflow-y: auto !important;
+  max-height: 75vh;
+  padding-bottom: 220px !important; /* 드롭다운 메뉴가 아래에서 잘리지 않도록 여유 공간 확보 */
+}
+
+/* Multi-select manual input row in mini version */
+.doc-incharge-col .multi-select-popover {
+  padding: 6px !important;
+}
+
+
+.doc-incharge-col .multi-select-option {
+  padding: 6px 10px !important;
+  font-size: 0.8rem !important;
+  gap: 8px !important;
+}
+
+.doc-bulk-incharge-manual {
+  height: 30px !important;
+  padding: 0 8px !important;
+  font-size: 0.8rem !important;
+  border-radius: 6px !important;
+  border: 1px dashed #cbd5e1 !important;
+  background: #fff !important;
+}
+
+body.dark-mode .doc-bulk-incharge-manual {
+  background: rgba(15, 23, 42, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: #f1f5f9 !important;
+}
+
+.curr-manual-input-row.hidden {
+  display: none !important;
+}
+
+/* ================= Doc Bulk Inline Styling ================= */
+.inline-color-picker {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 6px 12px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+}
+
+body.dark-mode .inline-color-picker {
+    background: rgba(15, 23, 42, 0.4);
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+.color-picker-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.color-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+    white-space: nowrap;
+}
+
+.color-trigger {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 2px solid white;
+    box-shadow: 0 0 0 1px #e2e8f0;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.color-trigger:hover {
+    transform: scale(1.1);
+}
+
+.color-popover {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 10px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    z-index: 10005;
+    display: none;
+    width: 150px;
+}
+
+.color-popover.active {
+    display: block;
+    animation: slideUpFade 0.2s ease-out;
+}
+
+body.dark-mode .color-popover {
+    background: #1e293b;
+    border: 1px solid #334155;
+}
+
+.mini-palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+}
+
+.mini-color-opt {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid rgba(0,0,0,0.1);
+    transition: transform 0.1s;
+}
+
+.mini-color-opt:hover {
+    transform: scale(1.1);
+}
+
+.doc-row-remove-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #fff;
+    border: 1px solid #fee2e2;
+    color: #ef4444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-left: 4px;
+    flex-shrink: 0;
+}
+
+.doc-row-remove-btn:hover {
+    background: #ef4444;
+    color: #fff;
+    border-color: #ef4444;
+    transform: rotate(90deg);
+}
+
+body.dark-mode .doc-row-remove-btn {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+
+/* ================= Curriculum Form Specifics ================= */
+.curr-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.curr-form-group label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #64748b;
+}
+
+body.dark-mode .curr-form-group label {
+    color: #94a3b8;
+}
+
+.curr-input {
+    width: 100%;
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: #ffffff;
+    transition: all 0.2s;
+    box-sizing: border-box;
+}
+
+body.dark-mode .curr-input {
+    background: rgba(15, 23, 42, 0.6);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #f1f5f9;
+}
+
+.curr-input:focus {
+    border-color: #3b82f6 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+.btn-doc-bulk-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.05);
+    border: 1px dashed rgba(59, 130, 246, 0.3);
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 10px;
+    width: fit-content;
+}
+
+.btn-doc-bulk-add:hover {
+    background: rgba(59, 130, 246, 0.1);
+    transform: translateY(-1px);
+}
+
+body.dark-mode .btn-doc-bulk-add {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.4);
+    color: #60a5fa;
+}
+
+
+
+/* ================= Profile & Admin Settings Improvements ================= */
+.auth-disabled-input {
+    background: #f1f5f9;
+    color: #94a3b8;
+    border: 1px solid #e2e8f0;
+    padding: 0.5rem 0.8rem;
+    border-radius: 8px;
+    width: 100%;
+}
+
+body.dark-mode .auth-disabled-input {
+    background: rgba(15, 23, 42, 0.4) !important;
+    color: #64748b !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.profile-settings-box {
+    background: #f8fafc;
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    margin-top: 8px;
+}
+
+body.dark-mode .profile-settings-box {
+    background: rgba(30, 41, 59, 0.4) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.dark-mode .profile-settings-box p {
+    color: #94a3b8 !important;
+}
+
+.profile-reset-btn {
+    width: 100%;
+    padding: 10px;
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    color: #334155;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.profile-reset-btn i {
+    font-size: 1rem;
+    color: #64748b;
+}
+
+body.dark-mode .profile-reset-btn {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #cbd5e1 !important;
+}
+
+body.dark-mode .profile-reset-btn:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+body.dark-mode .profile-reset-btn i {
+    color: #94a3b8;
+}
+
+.admin-edit-divider {
+    margin: 20px 0;
+    border-top: 1px solid #e2e8f0;
+}
+
+body.dark-mode .admin-edit-divider {
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Segmented Control Dark Mode Fixes */
+body.dark-mode .segmented-control-container {
+    background: rgba(15, 23, 42, 0.6) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.dark-mode .segment-btn-custom {
+    color: #94a3b8;
+}
+
+body.dark-mode .segment-btn-custom:hover {
+    color: #f1f5f9;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .segment-btn-custom.active {
+    background: rgba(59, 130, 246, 0.2) !important;
+    color: #60a5fa !important;
+    box-shadow: none !important;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+body.dark-mode .modal-header h2 {
+    color: #f1f5f9;
+}
+
+body.dark-mode .modal-body label {
+    color: #94a3b8;
 }

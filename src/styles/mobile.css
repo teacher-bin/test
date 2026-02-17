@@ -107,14 +107,15 @@
         display: flex !important;
         flex-wrap: nowrap !important; /* Forced single line */
         overflow-x: auto !important; /* Scrolloable if absolutely necessary */
-        justify-content: center !important; /* Center if fits */
+        justify-content: flex-start !important; /* Start from left on mobile to show scrollability */
         align-items: center !important;
-        gap: 3px !important; /* Reduced gap */
-        padding: 0 4px !important;
+        gap: 6px !important; /* Slightly increased gap for better touch */
+        padding: 0 15px !important; /* Side padding for better scroll feel */
         width: 100% !important;
         pointer-events: auto !important;
         scrollbar-width: none; /* Hide scrollbar */
         -ms-overflow-style: none;
+        -webkit-overflow-scrolling: touch;
     }
     
     #category-nav::-webkit-scrollbar {
@@ -122,19 +123,19 @@
     }
 
     .nav-item {
-        padding: 3px 8px !important; /* Reduced padding */
-        font-size: 0.75rem !important; /* Reduced font size ~1pt (approx) */
-        height: 26px !important; /* Reduced height */
-        border-radius: 13px !important;
+        padding: 4px 12px !important; /* Slightly more relaxed padding */
+        font-size: 0.78rem !important; /* Legible size */
+        height: 28px !important; 
+        border-radius: 14px !important;
         flex: 0 0 auto !important;
         white-space: nowrap !important;
-        letter-spacing: -0.5px !important; /* Reduce width slightly */
-        transform: scaleX(0.97) !important; /* Slight Jangpyeong reduction */
-        transform-origin: center !important;
+        letter-spacing: -0.3px !important; 
+        transform: none !important; /* Remove jangpyeong reduction for better look */
     }
 
     /* Hide UI Elements on Mobile */
     .nav-item[data-category="bus"],
+    #bus-section,
     #nav-admin-btn,
     #user-greeting {
         display: none !important;

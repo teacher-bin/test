@@ -131,6 +131,7 @@
   let isEditMode = false;
   let localShortcutData = []; 
   let collapsedGroups = new Set(); // Track collapsed group IDs
+  let shortcutEditSource = 'personal'; // 'personal' or 'default' (admin only)
 
   // 자료마당 상태 관리
   let datayardEditMode = false;
@@ -152,87 +153,130 @@
   }
 
   async function loadShortcutsFromFirebase() {
-    const { db, firestoreUtils } = window;
+    const { db, firestoreUtils, auth } = window;
+    if (!db || !firestoreUtils) return;
+
     try {
-      // 1. 그룹 정보 가져오기 (컬렉션 shortcut_groups)
-      // 간단하게 구현하기 위해 문서 하나에 전체 JSON을 저장하는 방식을 추천하지만, 
-      // 확장성을 위해 개별 문서로 갈 수도 있습니다. 
-      // 여기서는 빠른 구현과 무결성을 위해 'settings' 컬렉션의 'shortcuts' 문서를 메인으로 사용하겠습니다.
-      // 만약 세부 컬렉션이 필요하다면 마이그레이션이 필요합니다.
-      
-      const docRef = firestoreUtils.doc(db, "settings", "shortcuts");
-      const docSnap = await firestoreUtils.getDocs(firestoreUtils.query(firestoreUtils.collection(db, "settings")));
-      // getDoc이 firestoreUtils에 없으므로 query를 이용하거나, 
-      // 단일 문서 관리용으로 collection 구조를 잡습니다.
-      
-      // 편의상 'shortcutGroups' 컬렉션을 사용합니다.
-      const q = firestoreUtils.query(firestoreUtils.collection(db, "shortcutGroups"));
-      const querySnapshot = await firestoreUtils.getDocs(q);
-      
-      const loadedData = [];
-      querySnapshot.forEach((doc) => {
-        loadedData.push({ id: doc.id, ...doc.data() });
-      });
+      const user = auth?.currentUser;
+      let loadedData = [];
+
+      // 1. 개인화된 바로가기 시도 (로그인된 경우)
+      if (user && shortcutEditSource === 'personal') {
+          const personalRef = firestoreUtils.collection(db, "users", user.uid, "myShortcuts");
+          const personalSnap = await firestoreUtils.getDocs(firestoreUtils.query(personalRef));
+          
+          if (!personalSnap.empty) {
+              personalSnap.forEach((doc) => {
+                  loadedData.push({ id: doc.id, ...doc.data() });
+              });
+              console.log("Personal shortcuts loaded for:", user.email);
+          }
+      }
+
+      // 2. 관리자 모드에서 'default' 선택했거나, 개인 데이터가 없는 경우 -> 글로벌 로드
+      if (loadedData.length === 0) {
+          const globalRef = firestoreUtils.collection(db, "shortcutGroups");
+          const globalSnap = await firestoreUtils.getDocs(firestoreUtils.query(globalRef));
+          
+          globalSnap.forEach((doc) => {
+              loadedData.push({ id: doc.id, ...doc.data() });
+          });
+          console.log("Global default shortcuts loaded (Source: " + shortcutEditSource + ")");
+      }
 
       if (loadedData.length > 0) {
-        // order 필드 기준 정렬
-        loadedData.sort((a, b) => a.order - b.order);
+        loadedData.sort((a, b) => (a.order || 0) - (b.order || 0));
         localShortcutData = loadedData;
-        // Default: Collapse all groups on mobile
+        
         if (window.innerWidth <= 768) {
             localShortcutData.forEach(g => collapsedGroups.add(g.id));
         }
       } else {
-        // 데이터가 없으면 초기 데이터(data.js)를 Firebase에 업로드
-        localShortcutData = JSON.parse(JSON.stringify(shortcutData));
-        // id 및 order 부여
+        // 완전 초기 상태 (데이터 무) -> window.shortcutData에서 로드 (data.js)
+        localShortcutData = JSON.parse(JSON.stringify(window.shortcutData || []));
         localShortcutData.forEach((group, index) => {
             if(!group.id) group.id = 'group-' + Date.now() + '-' + index;
             group.order = index;
-            if(!group.items) group.items = [];
-            group.items.forEach((item, i) => {
-                if(!item.id) item.id = 'item-' + Date.now() + '-' + i;
-            });
         });
-        await saveAllShortcutsToFirebase();
       }
       renderShortcuts();
     } catch (err) {
-      console.error("Firebase shortcuts load error:", err);
-      // 에러 시 로컬 데이터 Fallback
-      localShortcutData = JSON.parse(JSON.stringify(shortcutData));
+      console.error("Shortcuts load error:", err);
+      localShortcutData = JSON.parse(JSON.stringify(window.shortcutData || []));
       renderShortcuts();
     }
   }
+  window.loadShortcutsFromFirebase = loadShortcutsFromFirebase;
 
   async function saveAllShortcutsToFirebase() {
       if (!window.db) return;
-      const { db, firestoreUtils } = window;
+      const { db, firestoreUtils, auth } = window;
+      const user = auth?.currentUser;
+
+      let targetCollection = "";
+      if (isAdmin() && shortcutEditSource === 'default') {
+          targetCollection = "shortcutGroups";
+      } else if (user) {
+          targetCollection = `users/${user.uid}/myShortcuts`;
+      } else {
+          alert("로그인이 필요합니다.");
+          return;
+      }
       
-      // 기존 데이터 삭제 로직은 복잡하므로, 덮어쓰기 방식으로 진행.
-      // 실제로는 batch를 쓰는 게 좋지만 여기선 loop로 처리
-      for (const group of localShortcutData) {
-          await firestoreUtils.setDoc(firestoreUtils.doc(db, "shortcutGroups", group.id), group);
+      try {
+          // 컬렉션 내의 모든 문서를 업데이트/생성
+          for (const group of localShortcutData) {
+              await firestoreUtils.setDoc(firestoreUtils.doc(db, targetCollection, group.id), group);
+          }
+          console.log("Saved to:", targetCollection);
+      } catch (e) {
+          console.error("Save error:", e);
+          alert("저장 중 오류가 발생했습니다.");
       }
   }
   
   async function deleteGroupFromFirebase(groupId) {
       if (!window.db) return;
-      const { db, firestoreUtils } = window;
-      await firestoreUtils.deleteDoc(firestoreUtils.doc(db, "shortcutGroups", groupId));
+      const { db, firestoreUtils, auth } = window;
+      const user = auth?.currentUser;
+
+      let targetCollection = "";
+      if (isAdmin() && shortcutEditSource === 'default') {
+          targetCollection = "shortcutGroups";
+      } else if (user) {
+          targetCollection = `users/${user.uid}/myShortcuts`;
+      } else {
+          return;
+      }
+      
+      await firestoreUtils.deleteDoc(firestoreUtils.doc(db, targetCollection, groupId));
   }
 
   // 바로가기 렌더링 함수 (Sortable 적용)
   function renderShortcuts() {
     const isAdminRole = isAdmin();
+    const isLoggedIn = !!window.auth?.currentUser;
     
+    // Admin Toggle HTML
+    let sourceToggleHtml = "";
+    if (isEditMode && isAdminRole) {
+        sourceToggleHtml = `
+            <div class="shortcut-source-toggle">
+                <div class="source-btn ${shortcutEditSource==='personal'?'active':''}" onclick="window.switchShortcutSource('personal')">내 바로가기</div>
+                <div class="source-btn ${shortcutEditSource==='default'?'active':''}" onclick="window.switchShortcutSource('default')">기본값(공용)</div>
+            </div>
+        `;
+    }
+
     shortcutSection.innerHTML = `
       <div class="shortcut-controls">
         ${isEditMode 
-          ? `<button id="add-group-btn" class="btn-secondary"><i class="fas fa-folder-plus"></i> 그룹 추가</button>
+          ? `
+             ${sourceToggleHtml}
+             <button id="add-group-btn" class="btn-secondary"><i class="fas fa-folder-plus"></i> 그룹 추가</button>
              <button id="save-order-btn" class="btn-success"><i class="fas fa-save"></i> 저장 완료</button>
              <button id="cancel-edit-btn" class="btn-cancel"><i class="fas fa-times"></i> 취소</button>`
-          : (isAdminRole ? `<button id="edit-mode-btn" class="btn-primary mobile-hide"><i class="fas fa-edit"></i> 바로가기 편집</button>` : '')
+          : (isLoggedIn ? `<button id="edit-mode-btn" class="btn-primary mobile-hide"><i class="fas fa-edit"></i> 바로가기 편집</button>` : '')
         }
       </div>
       <div id="shortcut-container" class="shortcut-grid ${isEditMode ? 'edit-mode' : ''}"></div>
@@ -403,6 +447,15 @@
       // Firebase에서도 삭제
       await deleteGroupFromFirebase(groupId); 
       renderShortcuts();
+  };
+
+  window.switchShortcutSource = async function(source) {
+      if (shortcutEditSource === source) return;
+      if (isEditMode && localShortcutData.length > 0) {
+          if (!confirm("현재 변경 사항이 저장되지 않았습니다. 데이터를 새로 불러오시겠습니까?")) return;
+      }
+      shortcutEditSource = source;
+      await loadShortcutsFromFirebase();
   };
 
   window.initShortcuts = initShortcuts; // 외부 노출
@@ -767,9 +820,9 @@
   }
 
   // Handle live role updates to refresh all admin controls
-  window.addEventListener('user-role-updated', () => {
+  window.addEventListener('user-role-updated', async () => {
       renderStatusControls();
-      renderShortcuts();
+      await loadShortcutsFromFirebase();
       initAccountEditing();
   });
 
@@ -2926,8 +2979,24 @@
         combinedEvents.forEach(data => {
              const start = data.start;
              let end = data.end || start;
+             
+             // 1. Date Check
              if (todayStr >= start && todayStr <= end) {
-                 todayEvents.push(data);
+                 // 2. Individual Filtering for 'doc' type
+                 if (data.eventType === 'doc') {
+                     const userTasks = window.currentUserTasks || [];
+                     const docInCharges = (data.inCharge || "").split(',').map(s => s.trim()).filter(Boolean);
+                     
+                     // Show if any of the doc's in-charge tasks matches any of user's assigned tasks
+                     const isMyDoc = docInCharges.some(task => userTasks.includes(task));
+                     
+                     if (isMyDoc) {
+                         todayEvents.push(data);
+                     }
+                 } else {
+                     // Other types (edu, staff, life) are shown to everyone as before
+                     todayEvents.push(data);
+                 }
              }
         });
 
@@ -3037,8 +3106,16 @@
     // 2. Sync Setup
     const setupTodayWidgetSync = () => {
         if (!window.db || isWidgetSyncSetup) return;
-        
-        isWidgetSyncSetup = true;
+     // Expose for external updates (profile change, etc.)
+    window.renderTodayWidget = renderTodayWidget;
+
+    // Listen for user data updates to refresh widget
+    window.addEventListener('user-role-updated', () => {
+        renderTodayWidget();
+    });
+
+    // 2. Initial Setup
+    isWidgetSyncSetup = true;
         const { db, firestoreUtils } = window;
 
         // Listen for updates
@@ -3998,26 +4075,37 @@
       // Check if it's horizontal swipe and not a vertical scroll
       if (Math.abs(diffX) > threshold && Math.abs(diffY) < maxVerticalOffset) {
         
-        // Define tab order
-        const tabs = Array.from(document.querySelectorAll('.nav-item'));
+        // Define tab order strictly from the header navigation
+        const navContainer = document.querySelector('#category-nav');
+        if (!navContainer) return;
+
+        const tabs = Array.from(navContainer.querySelectorAll('.nav-item'));
         const visibleTabs = tabs.filter(tab => {
-             return getComputedStyle(tab).display !== 'none';
+             const style = getComputedStyle(tab);
+             return style.display !== 'none' && style.visibility !== 'hidden' && tab.offsetWidth > 0;
         });
 
         // Find current active index
         const currentIndex = visibleTabs.findIndex(tab => tab.classList.contains('active'));
         if (currentIndex === -1) return;
 
+        let targetTab = null;
         if (diffX < 0) {
-          // Swipe Left -> Next Tab (Drag finger left, content moves left, next item comes from right)
+          // Swipe Left -> Next Tab
           if (currentIndex < visibleTabs.length - 1) {
-            visibleTabs[currentIndex + 1].click();
+            targetTab = visibleTabs[currentIndex + 1];
           }
         } else {
           // Swipe Right -> Prev Tab
           if (currentIndex > 0) {
-            visibleTabs[currentIndex - 1].click();
+            targetTab = visibleTabs[currentIndex - 1];
           }
+        }
+
+        if (targetTab) {
+            targetTab.click();
+            // Scroll nav item into view if it's overflowed
+            targetTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
         }
       }
     }, { passive: true });

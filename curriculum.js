@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let calendarInstance = null; // FullCalendar instance
     
     // Member Confirm State
-    let currMembers = []; 
+    let currMembers = ["교장", "교감", "행정실장", "유치원", "1-2학년", "3학년", "4학년", "5학년", "6학년", "전담", "영양"]; 
     // Data structure: { "1": { "교장": "확인", ... }, "2": { ... } } (Keys are month numbers as strings)
     let currYearlyData = {}; 
     let loadedYear = null;
@@ -49,7 +49,6 @@ document.addEventListener("DOMContentLoaded", () => {
     checkFirebaseAndInit();
 
     async function initCurriculum() {
-        console.log("Curriculum: Starting Initial Render...");
         
         // 1. 기본 UI 설정 및 즉시 렌더링 (빈 화면 방지)
         setupEventListeners();
@@ -67,13 +66,14 @@ document.addEventListener("DOMContentLoaded", () => {
         // 2. 비동기 데이터 로딩 (백그라운드)
         console.log("Curriculum: Loading Data...");
         try {
+            subscribeCurriculumEvents(); // Real-time Listener
+            
             await Promise.all([
-                loadCurriculumEvents(),
                 loadMemberConfig(),
                 loadYearlyData(currDate.getFullYear())
             ]);
-            console.log("Curriculum: Data Loaded. Re-rendering...");
-            renderCurrentView(); // 데이터 채워진 후 다시 그리기
+            console.log("Curriculum: Initial Config Loaded.");
+            renderCurrentView(); // Re-render after member config is loaded
         } catch (err) {
             console.error("Curriculum: Data Load Failed", err);
         }
@@ -81,45 +81,106 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-    // --- Data Loading ---
-    async function loadCurriculumEvents() {
+    // --- Data Loading (Real-time) ---
+    let unsubscribeCurriculum = null;
+    
+    function subscribeCurriculumEvents() {
         const { db, firestoreUtils } = window;
-        try {
-            // Using a single collection for now
-            const q = firestoreUtils.query(firestoreUtils.collection(db, "curriculum_events"));
-            const querySnapshot = await firestoreUtils.getDocs(q);
-            
-            currEvents = [];
-            querySnapshot.forEach((doc) => {
-                currEvents.push({ id: doc.id, ...doc.data() });
-            });
-        } catch (e) {
-            console.error("Error loading events:", e);
+        if (!db) return;
+        
+        if (unsubscribeCurriculum) {
+             try { unsubscribeCurriculum(); } catch(e) {}
         }
+
+        const q = firestoreUtils.query(firestoreUtils.collection(db, "curriculum_events"));
+        let isFirstLoad = true;
+
+        unsubscribeCurriculum = firestoreUtils.onSnapshot(q, (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                const docData = { id: change.doc.id, ...change.doc.data() };
+                
+                if (change.type === "added") {
+                    const idx = currEvents.findIndex(e => e.id === docData.id);
+                    // Prevent duplicates
+                    if (idx === -1) currEvents.push(docData);
+                    
+                    // Sync to Google (Only real-time updates)
+                    if (!isFirstLoad) {
+                         if(window.syncEventToGoogle) window.syncEventToGoogle(docData);
+                    }
+                }
+                if (change.type === "modified") {
+                    const idx = currEvents.findIndex(e => e.id === docData.id);
+                    if (idx > -1) currEvents[idx] = docData;
+                    
+                    if (!isFirstLoad) {
+                        if(window.syncEventToGoogle) window.syncEventToGoogle(docData);
+                    }
+                }
+                if (change.type === "removed") {
+                    const idx = currEvents.findIndex(e => e.id === change.doc.id);
+                    if (idx > -1) currEvents.splice(idx, 1);
+                    
+                    if (!isFirstLoad) {
+                        if(window.deleteEventFromGoogle) window.deleteEventFromGoogle(change.doc.id);
+                    }
+                }
+            });
+            
+            // Mark initial load complete
+            isFirstLoad = false;
+            renderCurrentView(); 
+        });
+    }
+
+    // Compatibility shim for existing calls
+    async function loadCurriculumEvents() {
+        // Since we have a listener, we don't need manual fetch.
+        // Just ensure listener is active.
+        if (!unsubscribeCurriculum) subscribeCurriculumEvents();
+        return Promise.resolve();
     }
 
     async function loadMemberConfig() {
         const { db, firestoreUtils } = window;
         if(!db) return;
         try {
+            console.log("Curriculum: Fetching member config...");
             const docRef = firestoreUtils.doc(db, "settings", "curriculum_members");
             const docSnap = await firestoreUtils.getDoc(docRef);
             
-            // Defense against docSnap.exists is not a function
-            const exists = (docSnap && typeof docSnap.exists === 'function') ? docSnap.exists() : (docSnap && docSnap.exists);
-
-            if (exists) {
-                const list = (typeof docSnap.data === 'function' ? docSnap.data() : docSnap.data).list;
-                if (Array.isArray(list) && list.length > 0) {
-                    currMembers = list;
-                } else {
-                    console.warn("Empty member list in DB.");
+            let loadedList = [];
+            
+            // Safe Data Extraction
+            if (docSnap.exists) { 
+                // .exists can be property or function depending on SDK version/mock
+                const existsVal = (typeof docSnap.exists === 'function') ? docSnap.exists() : docSnap.exists;
+                
+                if (existsVal) {
+                    const data = (typeof docSnap.data === 'function') ? docSnap.data() : docSnap.data;
+                    if (data && Array.isArray(data.list)) {
+                        loadedList = data.list;
+                    }
                 }
-            } else {
-                // DO NOT auto-init default members here to prevent overwriting on load failure.
             }
+
+            if (loadedList.length > 0) {
+                currMembers = loadedList;
+                console.log("Curriculum: Members loaded from DB:", currMembers);
+            } else {
+                console.warn("Curriculum: Member list not found/empty in DB. Using defaults.");
+                // Fallback Defaults to prevent broken UI
+                currMembers = ["교장", "교감", "행정실장", "유치원", "1-2학년", "3학년", "4학년", "5학년", "6학년", "전담", "영양"];
+            }
+            
+            // Force Render immediately after loading config
+            renderCurrentView();
+
         } catch (e) {
-            console.error("Error loading member config:", e);
+            console.error("Curriculum: Error loading member config:", e);
+            // Fallback on error
+            currMembers = ["교장", "교감", "행정실장", "유치원", "1-2학년", "3학년", "4학년", "5학년", "6학년", "전담", "영양"];
+            renderCurrentView();
         }
     }
 
@@ -456,7 +517,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- Table Rendering Logic ---
     function renderTable() {
         const body = document.getElementById("curr-table-body");
-        console.log("Curriculum: renderTable called.", { body, date: currDate });
 
         if(!body) {
             console.error("Curriculum: Table Body Element NOT FOUND!");
@@ -482,6 +542,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const filteredAutoEvents = autoEvents.filter(auto => !dbEventMap.has(auto.id));
         const combinedEvents = [...currEvents, ...filteredAutoEvents];
+        window.combinedEvents = combinedEvents; // Expose for Google Sync
 
         for(let d = 1; d <= lastDateOfMonth; d++) {
             const dateObj = new Date(y, m, d);
@@ -1196,7 +1257,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div class="doc-bulk-container">
                         <label class="curr-label">공문 목록</label>
                         <div id="doc-bulk-list"></div>
-                        <button type="button" class="add-doc-row-btn" onclick="window.addDocRow()">
+                        <button type="button" class="btn-doc-bulk-add" onclick="window.addDocRow()">
                             <i class="fas fa-plus"></i> 문서 추가
                         </button>
                     </div>
@@ -1487,12 +1548,26 @@ document.addEventListener("DOMContentLoaded", () => {
         // Holiday Check
         const isHoliday = document.getElementById("curr-is-holiday")?.checked || false;
 
+        // All Day Logic: derived from timeMode
+        // timeMode: 'all' (All Day), 'time' (Specific Time), 'class' (Period), 'manual' (Manual Text)
+        // Set allDay=false only if specific time is set
+        let allDay = true;
+        if (timeMode === 'time') {
+            allDay = false;
+        } else if (timeMode === 'manual') {
+            // Check if manual input looks like time (contain digits)
+            // But let's trust user intention -> if they chose manual, maybe it's mixed?
+            // Actually, if it has a colon ':', treat as time-based
+            if (time && time.includes(':')) allDay = false;
+        }
+
         // Construct Data Object
         const eventData = {
             eventType: type,
             title: title,
             start: date, // FullCalendar expects 'start' as YYYY-MM-DD
             time: time,
+            allDay: allDay,
             isHoliday: isHoliday,
             updatedAt: new Date().toISOString()
         };
@@ -1550,7 +1625,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     const bulkData = [];
                     rows.forEach(row => {
                         const t = row.querySelector('.doc-bulk-title')?.value;
-                        const i = row.querySelector('.doc-bulk-incharge')?.value;
+                        const container = row.querySelector('.multi-select-container');
+                        let iList = container ? window.getMultiSelectValues(container.id) : [];
+                        const manualEl = row.querySelector('.doc-bulk-incharge-manual');
+                        if (manualEl && manualEl.value.trim()) {
+                            const idx = iList.indexOf('직접입력');
+                            if (idx !== -1) iList[idx] = manualEl.value.trim();
+                        }
+                        const i = iList.join(', ');
                         const b = row.querySelector('.doc-bulk-bg')?.value;
                         const c = row.querySelector('.doc-bulk-text')?.value;
                         if (t) bulkData.push({ title: t, inCharge: i, backgroundColor: b, textColor: c });
@@ -1605,12 +1687,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 currModal.classList.remove("active");
-                // Refresh
-                await loadCurriculumEvents();
-                renderCurrentView(); // Refresh the table/calendar view
-                // If calendar open -> refetch
-                if(calendarInstance) calendarInstance.refetchEvents();
-                // Update Today Widget
+                // Refresh handled by Real-time Listener
+                // If calendar open -> refetch is triggered by listener's render
                 if (window.updateTodayWidget) window.updateTodayWidget();
             } catch (err) {
                 console.error(err);
@@ -1637,9 +1715,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     window.logUserAction('curriculum', '삭제', `${title} 일정 삭제`);
                 }
 
+                // Auto-Delete from Google is now handled by Real-time Listener
+
                 currModal.classList.remove("active");
-                loadCurriculumEvents();
-                renderCurrentView(); // Refresh UI after delete from modal
+                // Refresh handled by Listener
             } catch(err) {
                 console.error(err);
             }
@@ -1713,6 +1792,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if(window.logUserAction) {
                 window.logUserAction('curriculum', '삭제', `${logTitle} 일정 삭제 (빠른 삭제)`);
             }
+
+            // Auto-Delete from Google
+            if (window.deleteEventFromGoogle) window.deleteEventFromGoogle(id);
 
             await loadCurriculumEvents();
             renderCurrentView(); // Crucial: Refresh the UI
@@ -1799,6 +1881,25 @@ document.addEventListener("DOMContentLoaded", () => {
             else textSpan.classList.add('completed-text');
         }
     };
+    
+    window.updateDocInchargeText = (containerId) => {
+        if (window.updateMultiSelectText) window.updateMultiSelectText(containerId);
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        const manualInput = container.parentElement.querySelector('.doc-bulk-incharge-manual');
+        const checkedValues = window.getMultiSelectValues ? window.getMultiSelectValues(containerId) : [];
+        
+        if (manualInput) {
+            if (checkedValues.includes('직접입력')) {
+                manualInput.classList.remove('hidden');
+                manualInput.focus();
+            } else {
+                manualInput.classList.add('hidden');
+                manualInput.value = '';
+            }
+        }
+    };
 
     window.selectStaffStatus = (status) => {
         const hiddenInput = document.getElementById('curr-staff-status');
@@ -1827,6 +1928,8 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
 
+    const DOC_INCHARGE_OPTIONS = ["행정실장", "교감업무", "교무", "연구", "생활", "정보", "체육", "방과후", "과학", "진로", "환경", "보건", "도서", "영양", "차장", "운전주무관", "돌봄전담사", "유치원", "직접입력"];
+
     window.addDocRow = (title = '', inCharge = '', bg = '#ffffff', text = '#000000') => {
         const list = document.getElementById('doc-bulk-list');
         if(!list) return;
@@ -1834,14 +1937,44 @@ document.addEventListener("DOMContentLoaded", () => {
         const bgColors = ["#ffffff", "#fff5f5", "#fffdeb", "#f0fdf4", "#eff6ff", "#f5f3ff", "#f8fafc"];
         const textColors = ["#000000", "#ef4444", "#d97706", "#16a34a", "#2563eb", "#7c3aed", "#475569"];
 
+        // unique ID for each row's multi-select
+        const containerId = `doc-row-incharge-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+        
+        const selectedValues = (inCharge || "").split(',').map(v => v.trim()).filter(Boolean);
+        const fixedOptions = DOC_INCHARGE_OPTIONS.filter(o => o !== '직접입력');
+        
+        let checkedOptions = selectedValues.filter(v => fixedOptions.includes(v));
+        let manualValue = selectedValues.find(v => !fixedOptions.includes(v));
+        if (manualValue) checkedOptions.push('직접입력');
+        
+        const displayText = selectedValues.length > 0 ? selectedValues.join(', ') : '담당자 선택';
+
         const div = document.createElement('div');
         div.className = 'curr-doc-bulk-row';
         div.innerHTML = `
-            <div class="curr-form-group" style="flex: 3;">
+            <div class="curr-form-group" style="flex: 2.5; min-width: 150px;">
                 <input type="text" class="curr-input doc-bulk-title" value="${title}" placeholder="문서 제목 *" required>
             </div>
-            <div class="curr-form-group" style="flex: 1; min-width: 100px;">
-                <input type="text" class="curr-input doc-bulk-incharge" value="${inCharge}" placeholder="담당자">
+            
+            <div class="curr-form-group doc-incharge-col" style="flex: 1.5; min-width: 140px; display: flex; flex-direction: column; gap: 4px;">
+                <div class="multi-select-container mini-multi-select" id="${containerId}">
+                    <div class="multi-select-trigger" onclick="window.toggleMultiSelect('${containerId}')" style="height: 32px; padding: 0 8px; font-size: 0.8rem;">
+                        <span class="selected-items-text">${displayText}</span>
+                        <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i>
+                    </div>
+                    <div class="multi-select-popover" style="max-height: 200px; width: 160px;">
+                        ${DOC_INCHARGE_OPTIONS.map(opt => `
+                            <div class="multi-select-option" onclick="event.stopPropagation()" style="padding: 4px 8px; font-size: 0.85rem;">
+                                <input type="checkbox" value="${opt}" ${checkedOptions.includes(opt) ? 'checked' : ''} onchange="window.updateDocInchargeText('${containerId}')">
+                                <span>${opt}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <input type="text" class="curr-input doc-bulk-incharge-manual ${manualValue ? '' : 'hidden'}" 
+                       value="${manualValue || ''}" placeholder="이름 입력" 
+                       style="height: 26px; font-size: 0.75rem; padding: 0 8px !important;"
+                       oninput="window.updateDocInchargeText('${containerId}')">
             </div>
             
             <div class="inline-color-picker">

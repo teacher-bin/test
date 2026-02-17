@@ -156,12 +156,14 @@
       /* Alert Box */
       #login-container .auth-alert {
           margin: 0.5rem 0; padding: 0.85rem;
-          border-radius: 10px; font-size: 0.9rem;
+          border-radius: 10px; font-size: 0.85rem;
           text-align: center; display: flex; align-items: center; justify-content: center;
           background-color: #fef2f2; color: #ef4444 !important;
           border: 1px solid #fee2e2;
           animation: slideDown 0.3s ease-out;
           position: relative; z-index: 20;
+          white-space: pre-wrap; /* Respect line breaks */
+          line-height: 1.4;
       }
       #login-container .auth-alert.success {
           background-color: #ecfdf5; color: #10b981 !important;
@@ -269,6 +271,18 @@
                             <span class="toggle-label-text">담임</span>
                         </div>
                     </div>
+                    <div id="reg-work-group" class="form-group hidden" style="flex: 1;">
+                        <label>담당업무</label>
+                        <div class="multi-select-container" id="reg-work-container">
+                            <div class="multi-select-trigger" onclick="window.toggleMultiSelect('reg-work-container')">
+                                <span class="selected-items-text">업무 선택</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="multi-select-popover">
+                                <!-- JS Generated Options -->
+                            </div>
+                        </div>
+                    </div>
                     <div id="reg-class-info-group" class="form-group hidden" style="flex: 1;">
                         <label for="reg-class-info">학년/반 입력</label>
                         <input type="text" id="reg-class-info" placeholder="예) 1학년, 사랑반">
@@ -327,6 +341,18 @@
                                 <span class="slider round"></span>
                             </label>
                             <span class="toggle-label-text">담임</span>
+                        </div>
+                    </div>
+                    <div id="g-reg-work-group" class="form-group hidden" style="flex: 1;">
+                        <label>담당업무</label>
+                        <div class="multi-select-container" id="g-reg-work-container">
+                            <div class="multi-select-trigger" onclick="window.toggleMultiSelect('g-reg-work-container')">
+                                <span class="selected-items-text">업무 선택</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="multi-select-popover">
+                                <!-- JS Generated Options -->
+                            </div>
                         </div>
                     </div>
                     <div id="g-reg-class-info-group" class="form-group hidden" style="flex: 1;">
@@ -848,6 +874,13 @@
                 >
                   <i class="fas fa-file-word"></i> 한글
                 </button>
+                <button
+                  id="curr-google-sync-btn"
+                  class="export-btn google"
+                  title="구글 캘린더와 동기화"
+                >
+                  <i class="fab fa-google"></i> 구글 동기화
+                </button>
               </div>
             </div>
 
@@ -1229,15 +1262,16 @@
                   <table class="admin-table">
                     <thead>
                       <tr>
-                        <th onclick="sortAdminList('role')" data-sort="role" data-label="권한" style="cursor:pointer; width: 10%;">권한</th>
-                        <th onclick="sortAdminList('school')" data-sort="school" data-label="소속학교" style="cursor:pointer; width: 15%;">소속학교</th>
-                        <th onclick="sortAdminList('position')" data-sort="position" data-label="직위" style="cursor:pointer; width: 10%;">직위</th>
-                        <th onclick="sortAdminList('name')" data-sort="name" data-label="성명" style="cursor:pointer; width: 10%;">성명</th>
-                        <th onclick="sortAdminList('classInfo')" data-sort="classInfo" data-label="상세정보" style="cursor:pointer; width: 10%;">상세정보</th>
-                        <th onclick="sortAdminList('email')" data-sort="email" data-label="이메일" style="cursor:pointer; width: 20%;">이메일</th>
-                        <th onclick="sortAdminList('createdAt')" data-sort="createdAt" data-label="가입일" style="cursor:pointer; width: 10%;">가입일</th>
-                        <th onclick="sortAdminList('approved')" data-sort="approved" data-label="상태" style="cursor:pointer; width: 8%;">상태</th>
-                        <th style="width: 7%;">관리</th>
+                        <th onclick="sortAdminList('role')" data-sort="role" data-label="권한" style="cursor:pointer; width: 7%;">권한</th>
+                        <th onclick="sortAdminList('school')" data-sort="school" data-label="소속학교" style="cursor:pointer; width: 12%;">소속학교</th>
+                        <th onclick="sortAdminList('position')" data-sort="position" data-label="직위" style="cursor:pointer; width: 9%;">직위</th>
+                        <th onclick="sortAdminList('name')" data-sort="name" data-label="성명" style="cursor:pointer; width: 9%;">성명</th>
+                        <th onclick="sortAdminList('classInfo')" data-sort="classInfo" data-label="상세정보" style="cursor:pointer; width: 9%;">상세정보</th>
+                        <th style="width: 14%;">담당업무</th>
+                        <th onclick="sortAdminList('email')" data-sort="email" data-label="이메일" style="cursor:pointer; width: 18%;">이메일</th>
+                        <th onclick="sortAdminList('createdAt')" data-sort="createdAt" data-label="가입일" style="cursor:pointer; width: 9%;">가입일</th>
+                        <th onclick="sortAdminList('approved')" data-sort="approved" data-label="상태" style="cursor:pointer; width: 7%;">상태</th>
+                        <th style="width: 6%;">관리</th>
                       </tr>
                     </thead>
                     <tbody id="admin-user-list">
@@ -1599,7 +1633,7 @@
                         </div>
                         <div class="form-group">
                             <label>이메일</label>
-                            <input type="email" id="admin-edit-email" disabled style="background: #f1f5f9; color: #94a3b8;">
+                            <input type="email" id="admin-edit-email" disabled class="auth-disabled-input">
                         </div>
                     </div>
                     
@@ -1635,6 +1669,21 @@
                         </div>
                     </div>
                     
+                    <div class="form-row hidden" id="admin-edit-work-group" style="margin-top: 10px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label>담당업무 (교사(초등) 전용)</label>
+                            <div class="multi-select-container" id="admin-edit-work-container">
+                                <div class="multi-select-trigger" onclick="window.toggleMultiSelect('admin-edit-work-container')">
+                                    <span class="selected-items-text">업무를 선택하세요</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div class="multi-select-popover">
+                                    <!-- JS Generated Options -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="form-row" style="align-items: flex-end; margin-top: 10px;">
                         <div class="form-group" style="flex: 0 0 auto; margin-right: 15px;">
                             <label style="display:block; margin-bottom: 6px;">담임 여부</label>
@@ -1659,11 +1708,11 @@
                         <label style="color: var(--primary-color); display: flex; align-items: center; gap: 5px;">
                             <i class="fas fa-shield-alt"></i> 계정 보안
                         </label>
-                        <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 8px;">
+                        <div class="profile-settings-box">
                             <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 12px; line-height: 1.5;">
                                 회원이 비밀번호를 잊어버린 경우, 아래 버튼을 클릭하여 비밀번호 재설정 이메일을 발송할 수 있습니다.
                             </p>
-                            <button type="button" id="admin-reset-pw-btn" class="btn-reset-pw" style="width: 100%; padding: 10px; background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; color: #334155; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;">
+                            <button type="button" id="admin-reset-pw-btn" class="profile-reset-btn">
                                 <i class="fas fa-envelope-open-text"></i> 비밀번호 재설정 메일 발송
                             </button>
                         </div>
@@ -1698,7 +1747,7 @@
                         </div>
                         <div class="form-group">
                             <label>이메일</label>
-                            <input type="email" id="profile-edit-email" disabled style="background: #f1f5f9; color: #94a3b8;">
+                            <input type="email" id="profile-edit-email" disabled class="auth-disabled-input">
                         </div>
                     </div>
                     
@@ -1723,6 +1772,21 @@
                         </div>
                     </div>
                     
+                    <div class="form-row hidden" id="profile-edit-work-group" style="margin-top: 10px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label>담당업무</label>
+                            <div class="multi-select-container" id="profile-edit-work-container">
+                                <div class="multi-select-trigger" onclick="window.toggleMultiSelect('profile-edit-work-container')">
+                                    <span class="selected-items-text">업무를 선택하세요</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div class="multi-select-popover">
+                                    <!-- JS Generated Options -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="form-row" style="align-items: flex-end; margin-top: 10px;">
                         <div class="form-group" style="flex: 0 0 auto; margin-right: 15px;">
                             <label style="display:block; margin-bottom: 6px;">담임 여부</label>
@@ -1742,17 +1806,17 @@
                         </div>
                     </div>
 
-                    <div class="admin-edit-divider" style="margin: 20px 0; border-top: 1px solid var(--border-color);"></div>
+                    <div class="admin-edit-divider"></div>
 
                     <div class="form-group">
                         <label style="color: var(--primary-color); display: flex; align-items: center; gap: 5px;">
                             <i class="fas fa-key"></i> 비밀번호 관리
                         </label>
-                        <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 8px;">
+                        <div class="profile-settings-box">
                             <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 12px; line-height: 1.5;">
                                 보안을 위해 비밀번호 재설정 이메일을 발송하여 직접 변경하실 수 있습니다.
                             </p>
-                            <button type="button" id="profile-reset-pw-btn" class="btn-reset-pw" style="width: 100%; padding: 10px; background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; color: #334155; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;">
+                            <button type="button" id="profile-reset-pw-btn" class="profile-reset-btn">
                                 <i class="fas fa-envelope-open-text"></i> 비밀번호 재설정 메일 발송
                             </button>
                         </div>
@@ -2202,6 +2266,117 @@
       window.firebaseReady = true;
       window.dispatchEvent(new Event('firebase-ready'));
 
+      // ================= MULTI-SELECT UTILITIES =================
+      const POSITION_WORK_MAP = {
+          '교장': ['총괄'],
+          '교감': ['관리'],
+          '행정실장': ['행정실장'],
+          '교사(초등)': ["교감업무", "교무", "연구", "생활", "정보", "체육", "방과후", "과학", "진로", "환경", "보건", "도서", "영양"],
+          '교사(유치원)': ['유치원'],
+          '주무관': ['차장', '운전'],
+          '교무행정원': ['교무행정'],
+          '돌봄전담사': ['돌봄전담사']
+      };
+
+      window.initMultiSelect = function(containerId, options = []) {
+          const container = document.getElementById(containerId);
+          if (!container) return;
+          const popover = container.querySelector('.multi-select-popover');
+          if (!popover) return;
+
+          const opts = options.length > 0 ? options : [];
+          popover.innerHTML = opts.map(opt => `
+              <div class="multi-select-option" onclick="event.stopPropagation()">
+                  <input type="checkbox" value="${opt}" onchange="window.updateMultiSelectText('${containerId}')">
+                  <span>${opt}</span>
+              </div>
+          `).join('');
+          
+          window.updateMultiSelectText(containerId);
+      };
+
+      window.toggleMultiSelect = function(containerId) {
+          if (event) event.stopPropagation();
+          const container = document.getElementById(containerId);
+          const isActive = container.classList.contains('active');
+          
+          document.querySelectorAll('.multi-select-container').forEach(c => c.classList.remove('active'));
+          if (!isActive) container.classList.add('active');
+      };
+
+      window.updateMultiSelectText = function(containerId) {
+          const container = document.getElementById(containerId);
+          const checkboxes = container.querySelectorAll('input[type="checkbox"]:checked');
+          const textEl = container.querySelector('.selected-items-text');
+          
+          const selected = Array.from(checkboxes).map(cb => cb.value);
+          if (selected.length === 0) {
+              textEl.textContent = "업무 선택";
+          } else {
+              textEl.textContent = selected.join(', ');
+          }
+      };
+
+      window.getMultiSelectValues = function(containerId) {
+          const container = document.getElementById(containerId);
+          if(!container) return [];
+          const checkboxes = container.querySelectorAll('input[type="checkbox"]:checked');
+          return Array.from(checkboxes).map(cb => cb.value);
+      };
+
+      window.setMultiSelectValues = function(containerId, values) {
+          const container = document.getElementById(containerId);
+          if(!container) return;
+          const decodedValues = Array.isArray(values) ? values : [];
+          const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+          checkboxes.forEach(cb => {
+              cb.checked = decodedValues.includes(cb.value);
+          });
+          window.updateMultiSelectText(containerId);
+      };
+
+      window.setupWorkFieldToggle = function(posId, groupId, containerId) {
+          const posSelect = document.getElementById(posId);
+          const group = document.getElementById(groupId);
+          if (!posSelect || !group) return;
+
+          const update = (initialValues = null) => {
+              const pos = posSelect.value;
+              const options = POSITION_WORK_MAP[pos] || [];
+              
+              if (options.length > 0) {
+                  group.classList.remove('hidden');
+                  // Re-initialize with new options
+                  window.initMultiSelect(containerId, options);
+                  
+                  if (initialValues) {
+                      window.setMultiSelectValues(containerId, initialValues);
+                  } else if (options.length === 1) {
+                      // Auto-select if only one option
+                      window.setMultiSelectValues(containerId, [options[0]]);
+                  }
+              } else {
+                  group.classList.add('hidden');
+              }
+          };
+          posSelect.addEventListener('change', () => update());
+          // Export update function to be called from external (like profile load)
+          posSelect.updateWorkOptions = update;
+          update(); 
+      };
+
+      document.addEventListener('click', () => {
+          document.querySelectorAll('.multi-select-container').forEach(c => c.classList.remove('active'));
+      });
+
+      // Initialize all multi-selects
+      setTimeout(() => {
+          window.setupWorkFieldToggle('reg-position', 'reg-work-group', 'reg-work-container');
+          window.setupWorkFieldToggle('g-reg-position', 'g-reg-work-group', 'g-reg-work-container');
+          window.setupWorkFieldToggle('admin-edit-position', 'admin-edit-work-group', 'admin-edit-work-container');
+          window.setupWorkFieldToggle('profile-edit-position', 'profile-edit-work-group', 'profile-edit-work-container');
+      }, 500);
+
       // ================= AUTH LOGIC =================
       const auth = window.auth;
       const db = window.db;
@@ -2389,6 +2564,7 @@
                   // Notify script.js about role
                   window.currentUserRole = userData.role || 'user';
                   window.currentUserName = userData.name || '';
+                  window.currentUserTasks = userData.assignedTasks || [];
                   window.dispatchEvent(new CustomEvent('user-role-updated', { detail: { role: userData.role || 'user' } }));
 
                   window.dispatchEvent(new Event('resize'));
@@ -2469,6 +2645,7 @@
           const position = getVal('reg-position');
           const isHomeroom = document.getElementById('reg-is-homeroom').checked;
           const classInfo = getVal('reg-class-info');
+          const assignedTasks = window.getMultiSelectValues('reg-work-container');
 
           // Validation
           if(!email) return showError("이메일을 입력해주세요.");
@@ -2485,6 +2662,7 @@
               await setDoc(doc(db, "users", cred.user.uid), {
                   email, name, school, position,
                   isHomeroom, classInfo: isHomeroom ? classInfo : "",
+                  assignedTasks,
                   role: "member", approved: false, createdAt: new Date().toISOString()
               });
 
@@ -2498,6 +2676,17 @@
           }
       };
 
+      // --- IN-APP BROWSER DETECTION & WARNING ---
+      function getInAppBrowser() {
+          const ua = navigator.userAgent || navigator.vendor || window.opera;
+          if (ua.indexOf("KAKAOTALK") > -1) return "카카오톡";
+          if (ua.indexOf("Line") > -1) return "라인";
+          if (ua.indexOf("FBAN") > -1 || ua.indexOf("FBAV") > -1) return "페이스북";
+          if (ua.indexOf("Instagram") > -1) return "인스타그램";
+          if (ua.indexOf("NAVER") > -1) return "네이버";
+          return null;
+      }
+
       // Google Join
       if(googleJoinForm) {
           googleJoinForm.addEventListener('submit', async (e) => {
@@ -2510,12 +2699,14 @@
               const position = document.getElementById('g-reg-position').value;
               const isHomeroom = document.getElementById('g-reg-is-homeroom').checked;
               const classInfo = document.getElementById('g-reg-class-info').value;
+              const assignedTasks = window.getMultiSelectValues('g-reg-work-container');
 
               try {
                   await updateProfile(user, { displayName: name });
                   await setDoc(doc(db, "users", user.uid), {
                       email: user.email, name: name, school: school, position: position,
                       isHomeroom: isHomeroom, classInfo: isHomeroom ? classInfo : "",
+                      assignedTasks: assignedTasks,
                       role: "member", approved: false, createdAt: new Date().toISOString()
                   });
 
@@ -2540,10 +2731,21 @@
       const gLoginBtn = document.getElementById('google-login-btn');
       if(gLoginBtn) {
           gLoginBtn.addEventListener('click', async () => {
+              const inApp = getInAppBrowser();
+              if (inApp) {
+                  const msg = `[${inApp}] 인앱 브라우저에서는 구글 로그인이 보안상 차단될 수 있습니다.\n\n화면 우측 하단의 [설정] > [외부 브라우저로 열기] 또는 [Safari/Chrome으로 열기]를 이용해 주세요.`;
+                  showError(msg);
+                  alert(msg);
+                  return;
+              }
               try {
                   await signInWithPopup(auth, googleProvider);
               } catch (err) {
-                  showError("Google 로그인 실패");
+                  console.error("Google Login Error:", err);
+                  let msg = "Google 로그인 실패";
+                  if (err.code === 'auth/popup-blocked') msg = "팝업이 차단되었습니다. 설정을 확인해 주세요.";
+                  else if (err.code === 'auth/popup-closed-by-user') msg = "로그인 창이 닫혔습니다.";
+                  showError(msg);
               }
           });
       }
@@ -2709,7 +2911,7 @@
 
           let html = '';
           if (filtered.length === 0) {
-              html = `<tr><td colspan="9" style="text-align:center; padding: 2.5rem; color: var(--text-muted);">조건에 맞는 회원이 없습니다.</td></tr>`;
+              html = `<tr><td colspan="10" style="text-align:center; padding: 2.5rem; color: var(--text-muted);">조건에 맞는 회원이 없습니다.</td></tr>`;
           } else {
               filtered.forEach(u => {
                   const statusClass = u.approved ? 'badge-status-approved' : 'badge-status-pending';
@@ -2721,6 +2923,14 @@
                       homeroomDisplay = `<span class="info-text-bold">담임: ${u.classInfo || '?'}</span>`;
                   } else {
                       homeroomDisplay = `<span class="info-text-muted">비담임</span>`;
+                  }
+
+                  // Assigned Tasks Display
+                  let workDisplay = '';
+                  if (u.position === '교사(초등)' && u.assignedTasks && u.assignedTasks.length > 0) {
+                      workDisplay = u.assignedTasks.map(task => `<span class="badge-work-tag">${task}</span>`).join('');
+                  } else {
+                      workDisplay = '<span class="info-text-muted">-</span>';
                   }
 
                   // Role Badge
@@ -2751,11 +2961,12 @@
                            // Render Row (New Order: Role, School, Position, Name, Class Info, Email, Date, Status, Action)
                   html += `
                     <tr>
-                        <td><span class="${roleClass}">${roleText}</span></td>
+                        <td><span class="badge-role-user">${roleText}</span></td>
                         <td class="admin-user-school">${schoolName}</td>
                         <td><span class="badge-position">${u.position || '-'}</span></td>
                         <td class="admin-user-name">${u.name}</td>
                         <td>${homeroomDisplay}</td>
+                        <td><div style="display:flex; flex-wrap:wrap; justify-content:center; gap:2px;">${workDisplay}</div></td>
                         <td class="admin-user-email">${u.email}</td>
                         <td class="admin-user-date">${new Date(u.createdAt).toLocaleDateString()}</td>
                         <td><span class="${statusClass}">${statusText}</span></td>
@@ -2810,10 +3021,15 @@
           if (!user) return;
 
           document.getElementById('admin-edit-uid').value = uid;
-          document.getElementById('admin-edit-name').value = user.name;
-          document.getElementById('admin-edit-email').value = user.email;
-          document.getElementById('admin-edit-school').value = user.school;
-          document.getElementById('admin-edit-position').value = user.position;
+          document.getElementById('admin-edit-name').value = user.name || "";
+          document.getElementById('admin-edit-email').value = user.email || "";
+          document.getElementById('admin-edit-school').value = user.school || "";
+          
+          const adminPosEl = document.getElementById('admin-edit-position');
+          adminPosEl.value = user.position || "";
+          if (adminPosEl.updateWorkOptions) {
+              adminPosEl.updateWorkOptions(user.assignedTasks || []);
+          }
           
           const isHomeroomCb = document.getElementById('admin-edit-is-homeroom');
           isHomeroomCb.checked = user.isHomeroom;
@@ -2919,7 +3135,11 @@
                   document.getElementById('profile-edit-name').value = userData.name || "";
                   document.getElementById('profile-edit-email').value = user.email || "";
                   document.getElementById('profile-edit-school').value = userData.school || "";
-                  document.getElementById('profile-edit-position').value = userData.position || "";
+                  const profPosEl = document.getElementById('profile-edit-position');
+                  profPosEl.value = userData.position || "";
+                  if (profPosEl.updateWorkOptions) {
+                      profPosEl.updateWorkOptions(userData.assignedTasks || []);
+                  }
                   
                   const isHomeroomCb = document.getElementById('profile-edit-is-homeroom');
                   isHomeroomCb.checked = userData.isHomeroom || false;
@@ -2966,6 +3186,7 @@
               const position = document.getElementById('profile-edit-position').value;
               const isHomeroom = document.getElementById('profile-edit-is-homeroom').checked;
               const classInfo = document.getElementById('profile-edit-class-info').value;
+              const assignedTasks = window.getMultiSelectValues('profile-edit-work-container');
 
               const saveBtn = document.querySelector('button[form="userProfileForm"]');
               const originalText = saveBtn ? saveBtn.innerText : "변경사항 저장";
@@ -2982,12 +3203,15 @@
                   // Update Firestore
                   const newProfile = {
                       name, school, position, isHomeroom,
-                      classInfo: isHomeroom ? classInfo : ""
+                      classInfo: isHomeroom ? classInfo : "",
+                      assignedTasks
                   };
                   await updateDoc(doc(db, "users", user.uid), newProfile);
 
-                  // Update UI Greeting
-                  updateGreeting(newProfile);
+                   // Update UI Greeting
+                   updateGreeting(newProfile);
+                   window.currentUserTasks = newProfile.assignedTasks || [];
+                   window.dispatchEvent(new CustomEvent('user-role-updated', { detail: { role: window.currentUserRole } }));
 
                   alert("프로필이 성공적으로 업데이트되었습니다.");
                   userProfileModal.classList.remove('active');
@@ -3030,6 +3254,7 @@
                   position: document.getElementById('admin-edit-position').value,
                   isHomeroom: document.getElementById('admin-edit-is-homeroom').checked,
                   classInfo: document.getElementById('admin-edit-class-info').value,
+                  assignedTasks: window.getMultiSelectValues('admin-edit-work-container'),
                   role: document.getElementById('admin-edit-role').value
               };
 
@@ -3074,5 +3299,10 @@
     <script src="training_fixed.js"></script> <!-- Override Patch -->
     <script src="curriculum.js?v=33&t=20260211_1804"></script>
     <script src="script.js?v=13&t=20260211002941"></script>
+    
+    <!-- Google Calendar API Sync -->
+    <script src="src/utils/google-calendar-sync.js"></script>
+    <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
+    <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
   </body>
 </html>
